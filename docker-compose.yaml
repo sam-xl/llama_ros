@@ -1,0 +1,41 @@
+services:
+  llama_ros: 
+    build: .
+    platform: linux/arm64
+    image: llama_ros:latest # Image use order: Use local image > Pull from registry > Build and tag new image
+    container_name: llama_ros
+    network_mode: host
+    ipc: host
+    volumes:
+      - $HOME/.Xauthority:/home/ros/.Xauthority # for displaying GUI elements
+      # For workspace mount(Doesn't have to re-build from scratch every run)
+      - type: bind 
+        source: $HOME/llama_ws
+        target: /home/ros/ros2_ws
+      # For Model Mount(Doesn't have to re-pull model every run)
+      - type: bind
+        source: $HOME/.cache/huggingface
+        target: /home/ros/.cache/huggingface
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - ROS_LOCALHOST_ONLY=${ROS_LOCALHOST_ONLY}
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - DISPLAY=${DISPLAY}
+    #Expose NVIDIA GPU to container applications using custom nvidia container runtime
+    runtime: nvidia 
+    # deploying nvidia gpus
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, compute, utility]
+    privileged: true
+    working_dir: /home/ros/ros2_ws
+    #command: tail -f /dev/null # keep container running indefinitely(stop w/ ctrl+C)
+    command: > 
+      bash -c "source /opt/ros/jazzy/setup.bash 
+      && colcon build --cmake-args -DGGML_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc 
+      && source install/setup.bash
+      && ros2 llama launch /home/ros/ros2_ws/src/llama_ros/llama_bringup/models/${LLAMA_MODEL_FILE}"
