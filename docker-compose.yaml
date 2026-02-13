@@ -1,8 +1,9 @@
 services:
   llama_ros: 
-    build: .
+    build: . # location of Dockerfile
     platform: linux/arm64
-    image: llama_ros:latest # Image use order: Use local image > Pull from registry > Build and tag new image
+    # Will try to find image locally before building. To force build use --build flag. 
+    image: llama_ros:latest 
     container_name: llama_ros
     network_mode: host
     ipc: host

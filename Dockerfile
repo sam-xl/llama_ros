@@ -3,7 +3,7 @@ ARG USER_UID=1000
 ARG USER_GID=1000
 ARG ROS_DISTRO=jazzy 
 
-FROM --platform=linux/arm64 docker.io/samxl/jetson_ros:r36.4-jazzy AS deps
+FROM --platform=linux/arm64 docker.io/samxl/jetson_ros:r36.4-${ROS_DISTRO} AS deps
 
 # Redefine them to be used in this scope
 ARG USER
@@ -43,11 +43,6 @@ RUN apt-get update \
     python3-pip
 
 USER $USER
-
-# Clone behavior_tree if ROS_DISTRO is rolling
-RUN if [ "$ROS_DISTRO" = "rolling" ]; then \
-    git clone https://github.com/BehaviorTree/BehaviorTree.CPP src/BehaviorTree.CPP; \
-    fi
 
 # Install rosdep
 RUN sudo apt update && sudo rosdep init && rosdep update && rosdep install --from-paths src --ignore-src -r -y
