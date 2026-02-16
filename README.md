@@ -1,4 +1,4 @@
-# llama_ros
+# llama_ros(Jetson)
 
 This repository provides a set of ROS 2 packages to integrate [llama.cpp](https://github.com/ggerganov/llama.cpp) into ROS 2. Using the llama_ros packages, you can easily incorporate the powerful optimization capabilities of [llama.cpp](https://github.com/ggerganov/llama.cpp) into your ROS 2 projects by running [GGUF](https://github.com/ggerganov/ggml/blob/master/docs/gguf.md)-based [LLMs](https://huggingface.co/models?sort=trending&search=gguf+7b) and [VLMs](https://huggingface.co/models?sort=trending&search=gguf+llava). You can also use features from llama.cpp such as [GBNF grammars](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md) and modify LoRAs in real-time.
 
@@ -40,7 +40,7 @@ To run llama_ros with CUDA, first, you must install the [CUDA Toolkit](https://d
 
 ```shell
 cd ~/ros2_ws/src
-git clone https://github.com/mgonzs13/llama_ros.git
+git clone git@github.com:sam-xl/llama_ros.git
 pip3 install -r llama_ros/requirements.txt
 cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
@@ -49,19 +49,17 @@ colcon build --cmake-args -DGGML_CUDA=ON # add this for CUDA
 
 ## Docker
 
-Build the llama_ros docker or download an image from [DockerHub](https://hub.docker.com/repository/docker/mgons/llama_ros). You can choose to build llama_ros with CUDA (`USE_CUDA`) and choose the CUDA version (`CUDA_VERSION`). Remember that you have to use `DOCKER_BUILDKIT=0` to compile llama_ros with CUDA when building the image.
-
-<!-- To build using CUDA you have to install the [NVIDIA Container Tollkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) and [configure the default runtime to NVIDIA](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/1.12.1/user-guide.html#daemon-configuration-file). -->
+To build and start the docker image, simply import the repo into some workspace folder, create a cache folder for huggingface models, and use docker compose to build and bring up the container: 
 
 ```shell
-DOCKER_BUILDKIT=0 docker build -t llama_ros --build-arg USE_CUDA=1 --build-arg CUDA_VERSION=12-6 .
+cd ~/llama_ws/src
+git clone git@github.com:sam-xl/llama_ros.git
+cd llama_ros
+mkdir -p .cache/huggingface
+docker compose up
 ```
 
-Run the docker container. If you want to use CUDA, you have to install the [NVIDIA Container Tollkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) and add `--gpus all`.
-
-```shell
-docker run -it --rm --gpus all llama_ros
-```
+This will automatically run the model set in the .env file(defaults to MiniCPM-2.6). For options of models to run, see the [model files available](llama_bringup/models/). 
 
 ## Usage
 
