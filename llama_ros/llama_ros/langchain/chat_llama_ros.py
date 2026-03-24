@@ -23,6 +23,7 @@
 
 import cv2
 import json
+import re
 import base64
 import requests
 import numpy as np
@@ -105,6 +106,7 @@ from llama_msgs.msg import (
     ChatReasoningFormat,
 )
 from llama_msgs.action import GenerateChatCompletions
+from action_msgs.msg import GoalStatus
 import openai
 import json
 from pydantic import Field
@@ -150,6 +152,7 @@ class ChatLlamaROS(BaseChatModel, LlamaROSCommon):
         try:
             with context_manager as response:
                 is_first_chunk = True
+                has_yielded = False
                 for chunk in response:
                     if not isinstance(chunk, dict):
                         chunk = chunk.model_dump()
@@ -169,7 +172,12 @@ class ChatLlamaROS(BaseChatModel, LlamaROSCommon):
                             logprobs=logprobs,
                         )
                     is_first_chunk = False
+                    has_yielded = True
                     yield generation_chunk
+
+                # If no chunks were yielded, yield an empty chunk to avoid error
+                if not has_yielded:
+                    yield ChatGenerationChunk(message=AIMessageChunk(content=""))
         except openai.BadRequestError as e:
             _handle_openai_bad_request(e)
         if hasattr(response, "get_final_completion") and "response_format" in payload:
@@ -208,7 +216,7 @@ class ChatLlamaROS(BaseChatModel, LlamaROSCommon):
                 # 'any' is not natively supported by OpenAI API.
                 # We support 'any' since other models use this instead of 'required'.
                 if tool_choice == "any":
-                    tool_choice = "auto"
+                    tool_choice = "required"
             elif isinstance(tool_choice, bool):
                 tool_choice = "required"
             elif isinstance(tool_choice, dict):
@@ -460,6 +468,12 @@ class ChatLlamaROS(BaseChatModel, LlamaROSCommon):
             if hasattr(message, "refusal"):
                 generations[0].message.additional_kwargs["refusal"] = message.refusal
 
+        if not generations:
+            raise ValueError(
+                "LlamaROS chat completion returned no choices. "
+                "The action may have been rejected or aborted by the server."
+            )
+
         return ChatResult(generations=generations, llm_output=llm_output)
 
     def _filter_disabled_params(self, **kwargs: Any) -> Dict[str, Any]:
@@ -538,7 +552,14 @@ class ChatLlamaROS(BaseChatModel, LlamaROSCommon):
     def get_file_type(self, url: str) -> str:
         try:
             # HEAD is faster and avoids downloading the full file
-            response = requests.head(url, allow_redirects=True, timeout=10)
+            response = requests.head(
+                url,
+                allow_redirects=True,
+                timeout=10,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+                },
+            )
             content_type = response.headers.get("Content-Type", "")
 
             if content_type.startswith("image/"):
@@ -556,13 +577,19 @@ class ChatLlamaROS(BaseChatModel, LlamaROSCommon):
 
         for message in data.get("messages", []):
             if isinstance(message.get("content"), list):
-                # Extract the URL if an image_url exists
+                # Extract the URL if an image_url or audio_url exists
                 for item in message["content"]:
                     if item.get("type") == "image_url":
-                        if self.get_file_type(item["image_url"]["url"]) == "image":
-                            image_urls.append(item["image_url"]["url"])
-                        elif self.get_file_type(item["image_url"]["url"]) == "audio":
-                            audios_urls.append(item["image_url"]["url"])
+                        val = item["image_url"]
+                        url = val["url"] if isinstance(val, dict) else val
+                        file_type = self.get_file_type(url)
+                        if file_type == "audio":
+                            audios_urls.append(url)
+                        else:
+                            image_urls.append(url)
+                    if item.get("type") == "audio_url":
+                        val = item["audio_url"]
+                        audios_urls.append(val["url"] if isinstance(val, dict) else val)
 
                 # Remove all 'image_url' type items
                 message["content"] = [
@@ -570,12 +597,45 @@ class ChatLlamaROS(BaseChatModel, LlamaROSCommon):
                 ]
 
                 message["content"] = [
-                    item
-                    for item in message["content"]
-                    if item.get("type") != "audios_url"
+                    item for item in message["content"] if item.get("type") != "audio_url"
                 ]
 
         return data, image_urls, audios_urls
+
+    def _extract_tool_calls_from_content(self, content: str) -> tuple[list[dict], str]:
+        """Parse <tool_call>...</tool_call> blocks from model content into
+        OpenAI-style tool_call dicts, returning (tool_calls, remaining_content).
+        """
+        tool_calls = []
+        tool_call_id_counter = [0]
+
+        def _replace(match: re.Match) -> str:
+            raw = match.group(1).strip()
+            try:
+                data = json.loads(raw)
+                tc = {
+                    "id": f"call_{tool_call_id_counter[0]}",
+                    "type": "function",
+                    "function": {
+                        "name": data.get("name", ""),
+                        "arguments": json.dumps(
+                            data.get("arguments", data.get("parameters", {}))
+                        ),
+                    },
+                }
+                tool_call_id_counter[0] += 1
+                tool_calls.append(tc)
+            except json.JSONDecodeError:
+                pass
+            return ""
+
+        remaining = re.sub(
+            r"<tool_call>\s*(.*?)\s*</tool_call>",
+            _replace,
+            content,
+            flags=re.DOTALL,
+        ).strip()
+        return tool_calls, remaining
 
     def _parse_chat_generation_response(
         self, result: GenerateChatCompletions.Result
@@ -626,6 +686,19 @@ class ChatLlamaROS(BaseChatModel, LlamaROSCommon):
                 tool_call_dict["function"]["arguments"] = tool_call.arguments
 
                 msg_dict["tool_calls"].append(tool_call_dict)
+
+            # Extract any <tool_call>...</tool_call> blocks from content.
+            # The upstream PEG parser may only capture a subset of tool calls
+            # (e.g. for templates that wrap each call in its own XML tag pair).
+            # When content contains tool-call blocks, use those as the
+            # authoritative list to avoid duplicates with partial C++ parses.
+            if msg_dict["content"]:
+                parsed_tool_calls, remaining_content = (
+                    self._extract_tool_calls_from_content(msg_dict["content"])
+                )
+                if parsed_tool_calls:
+                    msg_dict["tool_calls"] = parsed_tool_calls
+                    msg_dict["content"] = remaining_content or None
 
             choice_dict["message"] = msg_dict
 
@@ -697,6 +770,18 @@ class ChatLlamaROS(BaseChatModel, LlamaROSCommon):
 
                 choice_dict["delta"]["tool_calls"].append(tool_call_dict)
 
+            # Extract any <tool_call>...</tool_call> blocks from content.
+            if choice_dict["delta"]["content"]:
+                parsed_tool_calls, remaining_content = (
+                    self._extract_tool_calls_from_content(choice_dict["delta"]["content"])
+                )
+                if parsed_tool_calls:
+                    base_idx = len(choice_dict["delta"]["tool_calls"])
+                    for idx, tc in enumerate(parsed_tool_calls):
+                        tc["index"] = base_idx + idx
+                    choice_dict["delta"]["tool_calls"] = parsed_tool_calls
+                    choice_dict["delta"]["content"] = remaining_content or None
+
             if choice.logprobs and len(choice.logprobs.data) > 0:
                 logprob = choice.logprobs
                 logprob_obj = {}
@@ -713,8 +798,7 @@ class ChatLlamaROS(BaseChatModel, LlamaROSCommon):
                             "bytes": [i_logprob.token],
                         }
                     )
-                # TODO: logprobs chunks
-                # choice_dict["logprobs"] = logprob_obj
+                choice_dict["logprobs"] = logprob_obj
             result_dict["choices"].append(choice_dict)
 
         return result_dict
@@ -814,18 +898,25 @@ class ChatLlamaROS(BaseChatModel, LlamaROSCommon):
             result = self.llama_client.generate_chat_completions(
                 chat_request, stream=True, stream_reasoning=self.stream_reasoning
             )
-        else:
-            result, _ = self.llama_client.generate_chat_completions(chat_request)
-
-        if stream:
             return self._return_context_manager(result)
         else:
+            result, status = self.llama_client.generate_chat_completions(chat_request)
+            if result is None or status != GoalStatus.STATUS_SUCCEEDED:
+                raise RuntimeError(
+                    f"LlamaROS chat completion action did not succeed (status={status}). "
+                    "The server may have rejected or aborted the goal."
+                )
             return self._parse_chat_generation_response(result)
 
     @contextmanager
     def _return_context_manager(self, response):
-        gen = (self._parse_chat_generation_chunk(chunk) for chunk in response)
+        def chunk_generator():
+            for chunk in response:
+                parsed = self._parse_chat_generation_chunk(chunk)
+                if parsed is not None:
+                    yield parsed
+
         try:
-            yield gen
+            yield chunk_generator()
         finally:
             pass

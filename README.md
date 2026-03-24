@@ -4,15 +4,15 @@ This repository provides a set of ROS 2 packages to integrate [llama.cpp](https:
 
 <div align="center">
 
-[![License: MIT](https://img.shields.io/badge/GitHub-MIT-informational)](https://opensource.org/license/mit) [![GitHub release](https://img.shields.io/github/release/mgonzs13/llama_ros.svg)](https://github.com/mgonzs13/llama_ros/releases) [![Code Size](https://img.shields.io/github/languages/code-size/mgonzs13/llama_ros.svg?branch=main)](https://github.com/mgonzs13/llama_ros?branch=main) [![Last Commit](https://img.shields.io/github/last-commit/mgonzs13/llama_ros.svg)](https://github.com/mgonzs13/llama_ros/commits/main) [![GitHub issues](https://img.shields.io/github/issues/mgonzs13/llama_ros)](https://github.com/mgonzs13/llama_ros/issues) [![GitHub pull requests](https://img.shields.io/github/issues-pr/mgonzs13/llama_ros)](https://github.com/mgonzs13/llama_ros/pulls) [![Contributors](https://img.shields.io/github/contributors/mgonzs13/llama_ros.svg)](https://github.com/mgonzs13/llama_ros/graphs/contributors) [![Python Formatter Check](https://github.com/mgonzs13/llama_ros/actions/workflows/python-formatter.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/python-formatter.yml?branch=main) [![C++ Formatter Check](https://github.com/mgonzs13/llama_ros/actions/workflows/cpp-formatter.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/cpp-formatter.yml?branch=main)
+[![License: MIT](https://img.shields.io/badge/GitHub-MIT-informational)](https://opensource.org/license/mit) [![GitHub release](https://img.shields.io/github/release/mgonzs13/llama_ros.svg)](https://github.com/mgonzs13/llama_ros/releases) [![Code Size](https://img.shields.io/github/languages/code-size/mgonzs13/llama_ros.svg?branch=main)](https://github.com/mgonzs13/llama_ros?branch=main) [![Last Commit](https://img.shields.io/github/last-commit/mgonzs13/llama_ros.svg)](https://github.com/mgonzs13/llama_ros/commits/main) [![GitHub issues](https://img.shields.io/github/issues/mgonzs13/llama_ros)](https://github.com/mgonzs13/llama_ros/issues) [![GitHub pull requests](https://img.shields.io/github/issues-pr/mgonzs13/llama_ros)](https://github.com/mgonzs13/llama_ros/pulls) [![Contributors](https://img.shields.io/github/contributors/mgonzs13/llama_ros.svg)](https://github.com/mgonzs13/llama_ros/graphs/contributors) [![Python Formatter Check](https://github.com/mgonzs13/llama_ros/actions/workflows/python-formatter.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/python-formatter.yml?branch=main) [![C++ Formatter Check](https://github.com/mgonzs13/llama_ros/actions/workflows/cpp-formatter.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/cpp-formatter.yml?branch=main) [![Doxygen Deployment](https://github.com/mgonzs13/llama_ros/actions/workflows/doxygen-deployment.yml/badge.svg)](https://mgonzs13.github.io/llama_ros/latest)
 
-| ROS 2 Distro |                          Branch                           |                                                                                                       Build status                                                                                                       |                                                                Docker Image                                                                | Documentation                                                                                                                                                  |
-| :----------: | :-------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  **Humble**  | [`main`](https://github.com/mgonzs13/llama_ros/tree/main) |  [![Humble Build](https://github.com/mgonzs13/llama_ros/actions/workflows/humble-docker-build.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/humble-docker-build.yml?branch=main)   |  [![Docker Image](https://img.shields.io/badge/Docker%20Image%20-humble-blue)](https://hub.docker.com/r/mgons/llama_ros/tags?name=humble)  | [![Doxygen Deployment](https://github.com/mgonzs13/llama_ros/actions/workflows/doxygen-deployment.yml/badge.svg)](https://mgonzs13.github.io/llama_ros/latest) |
-|   **Iron**   | [`main`](https://github.com/mgonzs13/llama_ros/tree/main) |     [![Iron Build](https://github.com/mgonzs13/llama_ros/actions/workflows/iron-docker-build.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/iron-docker-build.yml?branch=main)      |    [![Docker Image](https://img.shields.io/badge/Docker%20Image%20-iron-blue)](https://hub.docker.com/r/mgons/llama_ros/tags?name=iron)    | [![Doxygen Deployment](https://github.com/mgonzs13/llama_ros/actions/workflows/doxygen-deployment.yml/badge.svg)](https://mgonzs13.github.io/llama_ros/latest) |
-|  **Jazzy**   | [`main`](https://github.com/mgonzs13/llama_ros/tree/main) |    [![Jazzy Build](https://github.com/mgonzs13/llama_ros/actions/workflows/jazzy-docker-build.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/jazzy-docker-build.yml?branch=main)    |   [![Docker Image](https://img.shields.io/badge/Docker%20Image%20-jazzy-blue)](https://hub.docker.com/r/mgons/llama_ros/tags?name=jazzy)   | [![Doxygen Deployment](https://github.com/mgonzs13/llama_ros/actions/workflows/doxygen-deployment.yml/badge.svg)](https://mgonzs13.github.io/llama_ros/latest) |
-|  **Kilted**  | [`main`](https://github.com/mgonzs13/llama_ros/tree/main) |  [![Kilted Build](https://github.com/mgonzs13/llama_ros/actions/workflows/kilted-docker-build.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/kilted-docker-build.yml?branch=main)   |  [![Docker Image](https://img.shields.io/badge/Docker%20Image%20-kilted-blue)](https://hub.docker.com/r/mgons/llama_ros/tags?name=kilted)  | [![Doxygen Deployment](https://github.com/mgonzs13/llama_ros/actions/workflows/doxygen-deployment.yml/badge.svg)](https://mgonzs13.github.io/llama_ros/latest) |
-| **Rolling**  | [`main`](https://github.com/mgonzs13/llama_ros/tree/main) | [![Rolling Build](https://github.com/mgonzs13/llama_ros/actions/workflows/rolling-docker-build.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/rolling-docker-build.yml?branch=main) | [![Docker Image](https://img.shields.io/badge/Docker%20Image%20-rolling-blue)](https://hub.docker.com/r/mgons/llama_ros/tags?name=rolling) | [![Doxygen Deployment](https://github.com/mgonzs13/llama_ros/actions/workflows/doxygen-deployment.yml/badge.svg)](https://mgonzs13.github.io/llama_ros/latest) |
+| ROS 2 Distro |                          Branch                           |                                                                                                     Build status                                                                                                     |                                                                Docker Image                                                                |
+| :----------: | :-------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------: |
+|  **Humble**  | [`main`](https://github.com/mgonzs13/llama_ros/tree/main) |  [![Humble Build](https://github.com/mgonzs13/llama_ros/actions/workflows/humble-build-test.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/humble-build-test.yml?branch=main)   |  [![Docker Image](https://img.shields.io/badge/Docker%20Image%20-humble-blue)](https://hub.docker.com/r/mgons/llama_ros/tags?name=humble)  |
+|   **Iron**   | [`main`](https://github.com/mgonzs13/llama_ros/tree/main) |     [![Iron Build](https://github.com/mgonzs13/llama_ros/actions/workflows/iron-build-test.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/iron-build-test.yml?branch=main)      |    [![Docker Image](https://img.shields.io/badge/Docker%20Image%20-iron-blue)](https://hub.docker.com/r/mgons/llama_ros/tags?name=iron)    |
+|  **Jazzy**   | [`main`](https://github.com/mgonzs13/llama_ros/tree/main) |    [![Jazzy Build](https://github.com/mgonzs13/llama_ros/actions/workflows/jazzy-build-test.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/jazzy-build-test.yml?branch=main)    |   [![Docker Image](https://img.shields.io/badge/Docker%20Image%20-jazzy-blue)](https://hub.docker.com/r/mgons/llama_ros/tags?name=jazzy)   |
+|  **Kilted**  | [`main`](https://github.com/mgonzs13/llama_ros/tree/main) |  [![Kilted Build](https://github.com/mgonzs13/llama_ros/actions/workflows/kilted-build-test.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/kilted-build-test.yml?branch=main)   |  [![Docker Image](https://img.shields.io/badge/Docker%20Image%20-kilted-blue)](https://hub.docker.com/r/mgons/llama_ros/tags?name=kilted)  |
+| **Rolling**  | [`main`](https://github.com/mgonzs13/llama_ros/tree/main) | [![Rolling Build](https://github.com/mgonzs13/llama_ros/actions/workflows/rolling-build-test.yml/badge.svg?branch=main)](https://github.com/mgonzs13/llama_ros/actions/workflows/rolling-build-test.yml?branch=main) | [![Docker Image](https://img.shields.io/badge/Docker%20Image%20-rolling-blue)](https://hub.docker.com/r/mgons/llama_ros/tags?name=rolling) |
 
 </div>
 
@@ -24,6 +24,8 @@ This repository provides a set of ROS 2 packages to integrate [llama.cpp](https:
 4. [Usage](#usage)
    - [llama_cli](#llama_cli)
    - [Launch Files](#launch-files)
+   - [ROS 2 Parameters](#ros-2-parameters)
+   - [Speculative Decoding](#speculative-decoding-speculative)
    - [LoRA Adapters](#lora-adapters)
    - [ROS 2 Clients](#ros-2-clients)
    - [LangChain](#langchain)
@@ -45,6 +47,13 @@ pip3 install -r llama_ros/requirements.txt
 cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
 colcon build --cmake-args -DGGML_CUDA=ON # add this for CUDA
+```
+
+To run the tests:
+
+```shell
+colcon test --executor sequential --packages-select llama_ros llama_bt
+colcon test-result --verbose
 ```
 
 ## Docker
@@ -100,23 +109,27 @@ First of all, you need to create a launch file to use llama_ros or llava_ros. Th
 
 ```python
 from launch import LaunchDescription
-from llama_bringup.utils import create_llama_launch
+from launch_ros.actions import Node
 
 
 def generate_launch_description():
 
     return LaunchDescription([
-        create_llama_launch(
-            n_ctx=2048, # context of the LLM in tokens
-            n_batch=8, # batch size in tokens
-            n_gpu_layers=0, # layers to load in GPU
-            n_threads=1, # threads
-            n_predict=2048, # max tokens, -1 == inf
-
-            model_repo="TheBloke/Marcoroni-7B-v3-GGUF", # Hugging Face repo
-            model_filename="marcoroni-7b-v3.Q4_K_M.gguf", # model file in repo
-
-            system_prompt_type="Alpaca" # system prompt type
+        Node(
+            package="llama_ros",
+            executable="llama_node",
+            name="llama_node",
+            namespace="llama",
+            parameters=[{
+                "context.n_ctx": 2048,
+                "context.n_batch": 8,
+                "context.n_predict": 2048,
+                "gpu.n_gpu_layers": 0,
+                "cpu.n_threads": 1,
+                "model.repo": "TheBloke/Marcoroni-7B-v3-GGUF",
+                "model.filename": "marcoroni-7b-v3.Q4_K_M.gguf",
+                "prompt.system_prompt_type": "Alpaca",
+            }],
         )
     ])
 ```
@@ -133,29 +146,41 @@ ros2 launch llama_bringup marcoroni.launch.py
 <summary>Click to expand</summary>
 
 ```yaml
-n_ctx: 2048 # context of the LLM in tokens
-n_batch: 8 # batch size in tokens
-n_gpu_layers: 0 # layers to load in GPU
-n_threads: 1 # threads
-n_predict: 2048 # max tokens, -1 == inf
-
-model_repo: "cstr/Spaetzle-v60-7b-GGUF" # Hugging Face repo
-model_filename: "Spaetzle-v60-7b-q4-k-m.gguf" # model file in repo
-
-system_prompt_type: "Alpaca" # system prompt type
+/**:
+  ros__parameters:
+    model:
+      repo: "cstr/Spaetzle-v60-7b-GGUF"
+      filename: "Spaetzle-v60-7b-q4-k-m.gguf"
+    context:
+      n_ctx: 2048
+      n_batch: 8
+      n_predict: 2048
+    gpu:
+      n_gpu_layers: 0
+    cpu:
+      n_threads: 1
+    prompt:
+      system_prompt_type: "Alpaca"
 ```
 
 ```python
 import os
 from launch import LaunchDescription
-from llama_bringup.utils import create_llama_launch_from_yaml
+from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
     return LaunchDescription([
-        create_llama_launch_from_yaml(os.path.join(
-            get_package_share_directory("llama_bringup"), "models", "Spaetzle.yaml"))
+        Node(
+            package="llama_ros",
+            executable="llama_node",
+            name="llama_node",
+            namespace="llama",
+            parameters=[os.path.join(
+                get_package_share_directory("llama_bringup"),
+                "models", "Spaetzle.yaml")],
+        )
     ])
 ```
 
@@ -171,20 +196,68 @@ ros2 launch llama_bringup spaetzle.launch.py
 <summary>Click to expand</summary>
 
 ```yaml
-n_ctx: 2048 # context of the LLM in tokens
-n_batch: 8 # batch size in tokens
-n_gpu_layers: 0 # layers to load in GPU
-n_threads: 1 # threads
-n_predict: 2048 # max tokens, -1 == inf
+model:
+  repo: "Qwen/Qwen2.5-Coder-7B-Instruct-GGUF" # Hugging Face repo
+  filename: "qwen2.5-coder-7b-instruct-q4_k_m-00001-of-00002.gguf" # model shard file in repo
 
-model_repo: "Qwen/Qwen2.5-Coder-7B-Instruct-GGUF" # Hugging Face repo
-model_filename: "qwen2.5-coder-7b-instruct-q4_k_m-00001-of-00002.gguf" # model shard file in repo
+context:
+  n_ctx: 2048 # context of the LLM in tokens
+  n_batch: 8 # batch size in tokens
+  n_predict: 2048 # max tokens, -1 == inf
 
-system_prompt_type: "ChatML" # system prompt type
+gpu:
+  n_gpu_layers: 0 # layers to load in GPU
+
+cpu:
+  n_threads: 1 # threads
+
+prompt:
+  system_prompt_type: "ChatML" # system prompt type
 ```
 
 ```shell
 ros2 llama launch Qwen2.yaml
+```
+
+</details>
+
+#### llama_ros (Speculative Decoding)
+
+<details>
+<summary>Click to expand</summary>
+
+[Speculative decoding](https://arxiv.org/abs/2302.01318) uses a smaller draft model to predict multiple tokens ahead, then verifies them in parallel with the larger target model. This can significantly speed up text generation when using a small draft model from the same model family. Note that speculative decoding requires `context.n_parallel: 1`.
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: lmstudio-community/Meta-Llama-3.1-8B-Instruct-GGUF
+      filename: Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf
+    context:
+      n_ctx: 4096
+      n_batch: 2048
+      n_predict: 2048
+      n_parallel: 1
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: -1
+    prompt:
+      system_prompt_type: Llama-3
+    speculative:
+      type: draft
+      n_max: 16
+      n_min: 0
+      p_min: 0.75
+      n_gpu_layers: -1
+      model:
+        repo: lmstudio-community/Llama-3.2-1B-Instruct-GGUF
+        filename: Llama-3.2-1B-Instruct-Q4_K_M.gguf
+```
+
+```shell
+ros2 launch llama_bringup llama-3-speculative.launch.py
 ```
 
 </details>
@@ -196,27 +269,28 @@ ros2 llama launch Qwen2.yaml
 
 ```python
 from launch import LaunchDescription
-from llama_bringup.utils import create_llama_launch
+from launch_ros.actions import Node
 
 def generate_launch_description():
 
     return LaunchDescription([
-        create_llama_launch(
-            use_llava=True, # enable llava
-
-            n_ctx=8192, # context of the LLM in tokens, use a huge context size to load images
-            n_batch=512, # batch size in tokens
-            n_gpu_layers=33, # layers to load in GPU
-            n_threads=1, # threads
-            n_predict=8192, # max tokens, -1 == inf
-
-            model_repo="cjpais/llava-1.6-mistral-7b-gguf", # Hugging Face repo
-            model_filename="llava-v1.6-mistral-7b.Q4_K_M.gguf", # model file in repo
-
-            mmproj_repo="cjpais/llava-1.6-mistral-7b-gguf", # Hugging Face repo
-            mmproj_filename="mmproj-model-f16.gguf", # mmproj file in repo
-
-            system_prompt_type="Mistral" # system prompt type
+        Node(
+            package="llama_ros",
+            executable="llava_node",
+            name="llava_node",
+            namespace="llama",
+            parameters=[{
+                "context.n_ctx": 8192,
+                "context.n_batch": 512,
+                "gpu.n_gpu_layers": 33,
+                "cpu.n_threads": 1,
+                "context.n_predict": 8192,
+                "model.repo": "cjpais/llava-1.6-mistral-7b-gguf",
+                "model.filename": "llava-v1.6-mistral-7b.Q4_K_M.gguf",
+                "mmproj.repo": "cjpais/llava-1.6-mistral-7b-gguf",
+                "mmproj.filename": "mmproj-model-f16.gguf",
+                "prompt.system_prompt_type": "Mistral",
+            }],
         )
     ])
 ```
@@ -233,29 +307,44 @@ ros2 launch llama_bringup llava.launch.py
 <summary>Click to expand</summary>
 
 ```yaml
-use_llava: True # enable llava
-
-n_ctx: 8192 # context of the LLM in tokens use a huge context size to load images
-n_batch: 512 # batch size in tokens
-n_gpu_layers: 33 # layers to load in GPU
-n_threads: 1 # threads
-n_predict: 8192 # max tokens -1 : :  inf
-
-model_repo: "cjpais/llava-1.6-mistral-7b-gguf" # Hugging Face repo
-model_filename: "llava-v1.6-mistral-7b.Q4_K_M.gguf" # model file in repo
-
-mmproj_repo: "cjpais/llava-1.6-mistral-7b-gguf" # Hugging Face repo
-mmproj_filename: "mmproj-model-f16.gguf" # mmproj file in repo
-
-system_prompt_type: "mistral" # system prompt type
+/**:
+  ros__parameters:
+    model:
+      repo: "cjpais/llava-1.6-mistral-7b-gguf"
+      filename: "llava-v1.6-mistral-7b.Q4_K_M.gguf"
+    mmproj:
+      repo: "cjpais/llava-1.6-mistral-7b-gguf"
+      filename: "mmproj-model-f16.gguf"
+    context:
+      n_ctx: 8192
+      n_batch: 512
+      n_predict: 8192
+    gpu:
+      n_gpu_layers: 33
+    cpu:
+      n_threads: 1
+    prompt:
+      system_prompt_type: "Mistral"
 ```
 
 ```python
+import os
+from launch import LaunchDescription
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+
+
 def generate_launch_description():
     return LaunchDescription([
-        create_llama_launch_from_yaml(os.path.join(
-            get_package_share_directory("llama_bringup"),
-            "models", "llava-1.6-mistral-7b-gguf.yaml"))
+        Node(
+            package="llama_ros",
+            executable="llava_node",
+            name="llava_node",
+            namespace="llama",
+            parameters=[os.path.join(
+                get_package_share_directory("llama_bringup"),
+                "models", "llava-mistral.yaml")],
+        )
     ])
 ```
 
@@ -271,29 +360,44 @@ ros2 launch llama_bringup llava.launch.py
 <summary>Click to expand</summary>
 
 ```yaml
-use_llava: True
-
-n_ctx: 8192
-n_batch: 512
-n_gpu_layers: 29
-n_threads: -1
-n_predict: 8192
-
-model_repo: "mradermacher/Qwen2-Audio-7B-Instruct-GGUF"
-model_filename: "Qwen2-Audio-7B-Instruct.Q4_K_M.gguf"
-
-mmproj_repo: "mradermacher/Qwen2-Audio-7B-Instruct-GGUF"
-mmproj_filename: "Qwen2-Audio-7B-Instruct.mmproj-f16.gguf"
-
-system_prompt_type: "ChatML"
+/**:
+  ros__parameters:
+    model:
+      repo: "mradermacher/Qwen2-Audio-7B-Instruct-GGUF"
+      filename: "Qwen2-Audio-7B-Instruct.Q4_K_M.gguf"
+    mmproj:
+      repo: "mradermacher/Qwen2-Audio-7B-Instruct-GGUF"
+      filename: "Qwen2-Audio-7B-Instruct.mmproj-f16.gguf"
+    context:
+      n_ctx: 8192
+      n_batch: 512
+      n_predict: 8192
+    gpu:
+      n_gpu_layers: 29
+    cpu:
+      n_threads: -1
+    prompt:
+      system_prompt_type: "ChatML"
 ```
 
 ```python
+import os
+from launch import LaunchDescription
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+
+
 def generate_launch_description():
     return LaunchDescription([
-        create_llama_launch_from_yaml(os.path.join(
-            get_package_share_directory("llama_bringup"),
-            "models", "Qwen2-Audio.yaml"))
+        Node(
+            package="llama_ros",
+            executable="llava_node",
+            name="llava_node",
+            namespace="llama",
+            parameters=[os.path.join(
+                get_package_share_directory("llama_bringup"),
+                "models", "Qwen2-Audio.yaml")],
+        )
     ])
 ```
 
@@ -303,33 +407,220 @@ ros2 launch llama_bringup llava.launch.py
 
 </details>
 
+### ROS 2 Parameters
+
+The following tables list all the ROS 2 parameters available when launching `llama_node` or `llava_node`. Parameters are organized by namespace.
+
+#### General
+
+| Param       | Type    | Default | Description         |
+| ----------- | ------- | ------- | ------------------- |
+| `verbosity` | `int32` | `3`     | Log verbosity level |
+
+#### Model (`model.*`)
+
+| Param                 | Type     | Default | Description                                          |
+| --------------------- | -------- | ------- | ---------------------------------------------------- |
+| `model.path`          | `string` | `""`    | Local file path to the GGUF model                    |
+| `model.repo`          | `string` | `""`    | HuggingFace repository ID to download the model from |
+| `model.filename`      | `string` | `""`    | Filename of the model in the HuggingFace repository  |
+| `model.warmup`        | `bool`   | `true`  | Run a warmup inference on load                       |
+| `model.check_tensors` | `bool`   | `false` | Validate model tensor data on load                   |
+
+#### Multimodal Projector (`mmproj.*`)
+
+| Param             | Type     | Default | Description                                              |
+| ----------------- | -------- | ------- | -------------------------------------------------------- |
+| `mmproj.path`     | `string` | `""`    | Local file path to the multimodal projector              |
+| `mmproj.repo`     | `string` | `""`    | HuggingFace repository ID to download the projector from |
+| `mmproj.filename` | `string` | `""`    | Filename of the projector in the HuggingFace repository  |
+| `mmproj.use_gpu`  | `bool`   | `true`  | Use GPU for the multimodal projector                     |
+| `mmproj.disabled` | `bool`   | `false` | Disable loading the multimodal projector                 |
+
+#### Context / Inference (`context.*`)
+
+| Param                    | Type     | Default  | Description                                                                     |
+| ------------------------ | -------- | -------- | ------------------------------------------------------------------------------- |
+| `context.seed`           | `int32`  | `-1`     | RNG seed for sampling (`-1` for default)                                        |
+| `context.n_ctx`          | `int32`  | `0`      | Context size in tokens (`0` for model default)                                  |
+| `context.n_batch`        | `int32`  | `2048`   | Logical batch size for prompt processing                                        |
+| `context.n_ubatch`       | `int32`  | `512`    | Physical batch size                                                             |
+| `context.n_keep`         | `int32`  | `0`      | Number of tokens to keep from the initial prompt on context shift               |
+| `context.n_chunks`       | `int32`  | `-1`     | Max number of chunks to process (`-1` for unlimited)                            |
+| `context.n_predict`      | `int32`  | `-1`     | Max tokens to predict (`-1` for unlimited when using ctx_shift)                 |
+| `context.n_parallel`     | `int32`  | `1`      | Number of parallel sequences to decode                                          |
+| `context.n_sequences`    | `int32`  | `1`      | Number of sequences to decode                                                   |
+| `context.numa`           | `string` | `"none"` | NUMA strategy: `none`, `distribute`, `isolate`, `numactl`, `mirror`, or `count` |
+| `context.pooling_type`   | `string` | `""`     | Pooling type: `none`, `mean`, `cls`, `last`, or `rerank`                        |
+| `context.attention_type` | `string` | `""`     | Attention type: `causal` or `non_causal`                                        |
+| `context.embedding`      | `bool`   | `false`  | Enable embedding mode                                                           |
+| `context.reranking`      | `bool`   | `false`  | Enable reranking mode (sets pooling to `rerank` and enables embedding)          |
+| `context.ctx_shift`      | `bool`   | `false`  | Enable context shifting                                                         |
+| `context.swa_full`       | `bool`   | `false`  | Enable full sliding window attention                                            |
+| `context.cont_batching`  | `bool`   | `true`   | Enable continuous batching                                                      |
+
+#### GPU / Backend (`gpu.*`)
+
+| Param                 | Type       | Default   | Description                                            |
+| --------------------- | ---------- | --------- | ------------------------------------------------------ |
+| `gpu.n_gpu_layers`    | `int32`    | `-1`      | Number of layers to offload to GPU (`-1` for all)      |
+| `gpu.main_gpu`        | `int32`    | `0`       | Main GPU index                                         |
+| `gpu.split_mode`      | `string`   | `"layer"` | GPU split mode: `none`, `layer`, or `row`              |
+| `gpu.flash_attn_type` | `string`   | `"auto"`  | Flash attention type: `auto`, `enabled`, or `disabled` |
+| `gpu.tensor_split`    | `double[]` | `[0.0]`   | Tensor split proportions across GPUs                   |
+| `gpu.devices`         | `string[]` | `[]`      | GPU device names to use                                |
+| `gpu.no_kv_offload`   | `bool`     | `false`   | Disable KV cache offloading to GPU                     |
+| `gpu.no_op_offload`   | `bool`     | `false`   | Disable operation offloading                           |
+| `gpu.no_host`         | `bool`     | `false`   | Disable host buffer usage                              |
+| `gpu.no_extra_bufts`  | `bool`     | `false`   | Disable extra buffer types                             |
+
+#### Memory (`memory.*`)
+
+| Param                  | Type   | Default | Description                           |
+| ---------------------- | ------ | ------- | ------------------------------------- |
+| `memory.use_mmap`      | `bool` | `true`  | Use memory-mapped files for loading   |
+| `memory.use_direct_io` | `bool` | `false` | Use direct I/O for model loading      |
+| `memory.use_mlock`     | `bool` | `false` | Lock model in RAM to prevent swapping |
+| `memory.kv_unified`    | `bool` | `false` | Use unified KV cache                  |
+
+#### CPU (`cpu.*`)
+
+| Param           | Type     | Default    | Description                                                                  |
+| --------------- | -------- | ---------- | ---------------------------------------------------------------------------- |
+| `cpu.n_threads` | `int32`  | `-1`       | Number of threads for generation (`-1` for auto-detect)                      |
+| `cpu.poll`      | `int32`  | `50`       | Thread pool polling interval                                                 |
+| `cpu.mask`      | `string` | `""`       | CPU affinity mask for generation threads                                     |
+| `cpu.range`     | `string` | `""`       | CPU range for generation threads                                             |
+| `cpu.priority`  | `string` | `"normal"` | Thread scheduling priority: `low`, `normal`, `medium`, `high`, or `realtime` |
+| `cpu.strict`    | `bool`   | `false`    | Strict CPU affinity for generation threads                                   |
+
+#### CPU Batch (`cpu_batch.*`)
+
+| Param                 | Type     | Default    | Description                                                   |
+| --------------------- | -------- | ---------- | ------------------------------------------------------------- |
+| `cpu_batch.n_threads` | `int32`  | `-1`       | Number of threads for batch processing (`-1` for auto-detect) |
+| `cpu_batch.poll`      | `int32`  | `50`       | Thread pool polling interval for batch processing             |
+| `cpu_batch.mask`      | `string` | `""`       | CPU affinity mask for batch processing threads                |
+| `cpu_batch.range`     | `string` | `""`       | CPU range for batch processing threads                        |
+| `cpu_batch.priority`  | `string` | `"normal"` | Thread scheduling priority for batch processing               |
+| `cpu_batch.strict`    | `bool`   | `false`    | Strict CPU affinity for batch processing threads              |
+
+#### RoPE (`rope.*`)
+
+| Param               | Type     | Default | Description                                                |
+| ------------------- | -------- | ------- | ---------------------------------------------------------- |
+| `rope.freq_base`    | `float`  | `0.0`   | RoPE base frequency (`0.0` for model default)              |
+| `rope.freq_scale`   | `float`  | `0.0`   | RoPE frequency scale factor (`0.0` for model default)      |
+| `rope.scaling_type` | `string` | `""`    | RoPE scaling type: `none`, `linear`, `yarn`, or `longrope` |
+
+#### YaRN (`yarn.*`)
+
+| Param              | Type    | Default | Description                                              |
+| ------------------ | ------- | ------- | -------------------------------------------------------- |
+| `yarn.ext_factor`  | `float` | `-1.0`  | YaRN extrapolation mix factor (`-1.0` for model default) |
+| `yarn.attn_factor` | `float` | `-1.0`  | YaRN attention magnitude scaling factor                  |
+| `yarn.beta_fast`   | `float` | `-1.0`  | YaRN low correction dimension                            |
+| `yarn.beta_slow`   | `float` | `-1.0`  | YaRN high correction dimension                           |
+| `yarn.orig_ctx`    | `int32` | `0`     | YaRN original context size                               |
+
+#### Group Attention (`grp_attn.*`)
+
+| Param        | Type    | Default | Description                                           |
+| ------------ | ------- | ------- | ----------------------------------------------------- |
+| `grp_attn.n` | `int32` | `1`     | Self-extend group attention factor (`1` for disabled) |
+| `grp_attn.w` | `int32` | `512`   | Self-extend group attention width                     |
+
+#### KV Cache (`cache.*`)
+
+| Param          | Type     | Default | Description                                                                                      |
+| -------------- | -------- | ------- | ------------------------------------------------------------------------------------------------ |
+| `cache.type_k` | `string` | `"f16"` | Data type for K cache: `f32`, `f16`, `bf16`, `q8_0`, `q4_0`, `q4_1`, `iq4_nl`, `q5_0`, or `q5_1` |
+| `cache.type_v` | `string` | `"f16"` | Data type for V cache (same options as `cache.type_k`)                                           |
+
+#### Fit Parameters (`fit.*`)
+
+| Param         | Type    | Default | Description                                            |
+| ------------- | ------- | ------- | ------------------------------------------------------ |
+| `fit.enabled` | `bool`  | `true`  | Automatically fit model parameters to available memory |
+| `fit.min_ctx` | `int32` | `4096`  | Minimum context size when fitting parameters           |
+
+#### Speculative Decoding (`speculative.*`)
+
+Speculative decoding uses a smaller draft model to predict multiple tokens ahead, then verifies them in parallel with the main model. This can significantly speed up text generation, especially when using a large target model with a smaller draft model from the same model family.
+
+**Note:** Speculative decoding requires `context.n_parallel: 1` (single slot) and is not supported with embedding/reranking models.
+
+| Param                        | Type     | Default  | Description                                                                                                                                                                                             |
+| ---------------------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `speculative.type`           | `string` | `"none"` | Speculative decoding type: `none`, `draft`, `eagle3`, `ngram_simple`, `ngram_map_k`, `ngram_map_k4v`, `ngram_mod`, or `ngram_cache`                                                                     |
+| `speculative.n_max`          | `int32`  | `16`     | Maximum number of tokens to draft per speculative step                                                                                                                                                  |
+| `speculative.n_min`          | `int32`  | `0`      | Minimum number of draft tokens required to attempt verification. If the draft model produces fewer tokens than this, the draft is discarded and a single token is generated instead. `0` is recommended |
+| `speculative.p_min`          | `double` | `0.75`   | Minimum probability threshold for draft tokens (greedy)                                                                                                                                                 |
+| `speculative.n_ctx`          | `int32`  | `0`      | Context size for the draft model (`0` for same as target)                                                                                                                                               |
+| `speculative.n_gpu_layers`   | `int32`  | `-1`     | Number of layers to offload to GPU for the draft model (`-1` for all)                                                                                                                                   |
+| `speculative.model.path`     | `string` | `""`     | Local file path to the draft model GGUF file                                                                                                                                                            |
+| `speculative.model.repo`     | `string` | `""`     | HuggingFace repository ID for the draft model                                                                                                                                                           |
+| `speculative.model.filename` | `string` | `""`     | Filename of the draft model in the HuggingFace repository                                                                                                                                               |
+
+#### Prompt & Chat (`prompt.*`)
+
+| Param                       | Type       | Default | Description                                                               |
+| --------------------------- | ---------- | ------- | ------------------------------------------------------------------------- |
+| `prompt.prefix`             | `string`   | `""`    | Text prepended to every user prompt                                       |
+| `prompt.suffix`             | `string`   | `""`    | Text appended to every user prompt                                        |
+| `prompt.system_prompt`      | `string`   | `""`    | Initial system prompt                                                     |
+| `prompt.system_prompt_file` | `string`   | `""`    | Path to a file containing the system prompt                               |
+| `prompt.system_prompt_type` | `string`   | `""`    | System prompt type (loads from a predefined YAML in `llama_ros/prompts/`) |
+| `prompt.chat_template_file` | `string`   | `""`    | Path to a Jinja chat template file                                        |
+| `prompt.stopping_words`     | `string[]` | `[]`    | List of words/tokens that stop generation                                 |
+
+#### LoRA Adapters (`lora.*`)
+
+| Param                        | Type       | Default | Description                                         |
+| ---------------------------- | ---------- | ------- | --------------------------------------------------- |
+| `lora.adapters`              | `string[]` | `[]`    | List of LoRA adapter names to load                  |
+| `lora.init_without_apply`    | `bool`     | `false` | Load LoRA adapters without applying them            |
+| `lora.<lora_name>.repo`      | `string`   | `""`    | HuggingFace repository for the LoRA adapter         |
+| `lora.<lora_name>.filename`  | `string`   | `""`    | Filename of the LoRA adapter in the repository      |
+| `lora.<lora_name>.file_path` | `string`   | `""`    | Local file path to the LoRA adapter                 |
+| `lora.<lora_name>.scale`     | `double`   | `1.0`   | LoRA adapter scale factor (clamped to `[0.0, 1.0]`) |
+
 ### LoRA Adapters
 
-You can use LoRA adapters when launching LLMs. Using llama.cpp features, you can load multiple adapters choosing the scale to apply for each adapter. Here you have an example of using LoRA adapters with Phi-3. You can lis the
+You can use LoRA adapters when launching LLMs. Using llama.cpp features, you can load multiple adapters choosing the scale to apply for each adapter. Here you have an example of using LoRA adapters with Phi-3. You can list the
 LoRAs using the `/llama/list_loras` service and modify their scales values by using the `/llama/update_loras` service. A scale value of 0.0 means not using that LoRA.
 
 <details>
 <summary>Click to expand</summary>
 
 ```yaml
-n_ctx: 2048
-n_batch: 8
-n_gpu_layers: 0
-n_threads: 1
-n_predict: 2048
-
-model_repo: "bartowski/Phi-3.5-mini-instruct-GGUF"
-model_filename: "Phi-3.5-mini-instruct-Q4_K_M.gguf"
-
-lora_adapters:
-  - repo: "zhhan/adapter-Phi-3-mini-4k-instruct_code_writing"
-    filename: "Phi-3-mini-4k-instruct-adaptor-f16-code_writer.gguf"
-    scale: 0.5
-  - repo: "zhhan/adapter-Phi-3-mini-4k-instruct_summarization"
-    filename: "Phi-3-mini-4k-instruct-adaptor-f16-summarization.gguf"
-    scale: 0.5
-
-system_prompt_type: "Phi-3"
+/**:
+  ros__parameters:
+    model:
+      repo: bartowski/Phi-3.5-mini-instruct-GGUF
+      filename: Phi-3.5-mini-instruct-Q4_K_M.gguf
+    context:
+      n_ctx: 2048
+      n_batch: 8
+      n_predict: 2048
+    gpu:
+      n_gpu_layers: 0
+    cpu:
+      n_threads: 1
+    prompt:
+      system_prompt_type: Phi-3
+    lora:
+      adapters:
+        - code_writer
+        - summarization
+      code_writer:
+        repo: zhhan/adapter-Phi-3-mini-4k-instruct_code_writing
+        filename: Phi-3-mini-4k-instruct-adaptor-f16-code_writer.gguf
+        scale: 0.5
+      summarization:
+        repo: zhhan/adapter-Phi-3-mini-4k-instruct_summarization
+        filename: Phi-3-mini-4k-instruct-adaptor-f16-summarization.gguf
+        scale: 0.5
 ```
 
 </details>
@@ -403,7 +694,7 @@ _Remember to launch llama_ros with embedding set to true to be able of generatin
 
 ```python
 from rclpy.node import Node
-from llama_msgs.srv import Embeddings
+from llama_msgs.srv import GenerateEmbeddings
 
 
 class ExampleNode(Node):
@@ -411,12 +702,12 @@ class ExampleNode(Node):
         super().__init__("example_node")
 
         # create the client
-        self.srv_client = self.create_client(Embeddings, "/llama/generate_embeddings")
+        self.srv_client = self.create_client(GenerateEmbeddings, "/llama/generate_embeddings")
 
         # create the request
-        req = Embeddings.Request()
+        req = GenerateEmbeddings.Request()
         req.prompt = "Example text"
-        req.normalize = True
+        req.normalization = 2  # -1=none, 0=max abs int16, 1=taxicab, 2=euclidean, >2=p-norm
 
         # call the embedding service
         self.srv_client.wait_for_service()
@@ -513,6 +804,109 @@ class ExampleNode(Node):
         # wait again and take the result
         rclpy.spin_until_future_complete(self, get_result_future)
         result: GenerateResponse.Result = get_result_future.result().result
+```
+
+</details>
+
+#### Generate Chat Completions
+
+<details>
+<summary>Click to expand</summary>
+
+The `GenerateChatCompletions` action provides an OpenAI-compatible chat completions interface with support for tool calling, reasoning, and streaming.
+
+```python
+import rclpy
+from rclpy.node import Node
+from rclpy.action import ActionClient
+from llama_msgs.action import GenerateChatCompletions
+from llama_msgs.msg import ChatMessage
+
+
+class ExampleNode(Node):
+    def __init__(self) -> None:
+        super().__init__("example_node")
+
+        # create the client
+        self.action_client = ActionClient(
+            self, GenerateChatCompletions, "/llama/generate_chat_completions")
+
+        # create the goal
+        goal = GenerateChatCompletions.Goal()
+        goal.messages = [
+            ChatMessage(role="system", content="You are a helpful assistant."),
+            ChatMessage(role="user", content="What is ROS 2?")
+        ]
+        goal.sampling_config.temp = 0.2
+        goal.stream = True
+
+        # wait for the server and send the goal
+        self.action_client.wait_for_server()
+        send_goal_future = self.action_client.send_goal_async(goal)
+
+        # wait for the server
+        rclpy.spin_until_future_complete(self, send_goal_future)
+        get_result_future = send_goal_future.result().get_result_async()
+
+        # wait again and take the result
+        rclpy.spin_until_future_complete(self, get_result_future)
+        result = get_result_future.result().result
+```
+
+</details>
+
+#### Get Metadata
+
+<details>
+<summary>Click to expand</summary>
+
+```python
+from rclpy.node import Node
+from llama_msgs.srv import GetMetadata
+
+
+class ExampleNode(Node):
+    def __init__(self) -> None:
+        super().__init__("example_node")
+
+        # create the client
+        self.srv_client = self.create_client(GetMetadata, "/llama/get_metadata")
+
+        # call the metadata service
+        req = GetMetadata.Request()
+        self.srv_client.wait_for_service()
+        metadata = self.srv_client.call(req).metadata
+```
+
+</details>
+
+#### Rerank Documents
+
+<details>
+<summary>Click to expand</summary>
+
+_Remember to launch llama_ros with reranking set to true._
+
+```python
+from rclpy.node import Node
+from llama_msgs.srv import RerankDocuments
+
+
+class ExampleNode(Node):
+    def __init__(self) -> None:
+        super().__init__("example_node")
+
+        # create the client
+        self.srv_client = self.create_client(RerankDocuments, "/llama/rerank_documents")
+
+        # create the request
+        req = RerankDocuments.Request()
+        req.query = "What is robotics?"
+        req.documents = ["Robotics is a field of engineering.", "The weather is sunny."]
+
+        # call the reranking service
+        self.srv_client.wait_for_service()
+        scores = self.srv_client.call(req).scores
 ```
 
 </details>
@@ -654,7 +1048,7 @@ rclpy.shutdown()
 
 </details>
 
-#### llama_ros (Renranker)
+#### llama_ros (Reranker)
 
 <details>
 <summary>Click to expand</summary>
@@ -906,8 +1300,9 @@ if __name__ == "__main__":
 
 ```python
 import rclpy
+from typing import Optional
 
-from langchain_core.messages import HumanMessage
+from langchain_core.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
 from llama_ros.langchain import ChatLlamaROS
 from pydantic import BaseModel, Field
 
@@ -942,7 +1337,7 @@ chain = prompt | structured_chat
 
 res = chain.invoke({"prompt": "Tell me a joke about cats"})
 
-print(f"Response: {response.content.strip()}")
+print(f"Response: {res}")
 
 rclpy.shutdown()
 ```
@@ -961,7 +1356,7 @@ from random import randint
 
 import rclpy
 
-from langchain.tools import tool
+from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage
 from llama_ros.langchain import ChatLlamaROS
 
@@ -1050,7 +1445,7 @@ rclpy.shutdown()
 
 </details>
 
-#### chat_llama_ros (LangGraph)
+#### chat_llama_ros (Agent)
 
 <details>
 <summary>Click to expand</summary>
@@ -1061,9 +1456,9 @@ from random import randint
 
 import rclpy
 
-from langchain.tools import tool
+from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from llama_ros.langchain import ChatLlamaROS
 
 rclpy.init()
@@ -1081,11 +1476,11 @@ def get_curr_temperature(city: str) -> int:
 
 chat = ChatLlamaROS(temp=0.0)
 
-agent_executor = create_react_agent(
-    self.chat, [get_inhabitants, get_curr_temperature]
+agent_executor = create_agent(
+    chat, [get_inhabitants, get_curr_temperature]
 )
 
-response = self.agent_executor.invoke(
+response = agent_executor.invoke(
     {
         "messages": [
             HumanMessage(
@@ -1118,6 +1513,16 @@ ros2 run llama_demos llama_demo_node
 
 https://github.com/mgonzs13/llama_ros/assets/25979134/9311761b-d900-4e58-b9f8-11c8efefdac4
 
+### Speculative Decoding Demo
+
+```shell
+ros2 launch llama_bringup llama-3-speculative.launch.py
+```
+
+```shell
+ros2 run llama_demos llama_demo_node
+```
+
 ### Embeddings Generation Demo
 
 ```shell
@@ -1142,115 +1547,6 @@ ros2 run llama_demos llama_rerank_demo_node
 
 https://github.com/user-attachments/assets/4b4adb4d-7c70-43ea-a2c1-9be57d211484
 
-### VLM Demo
-
-```shell
-ros2 launch llama_bringup minicpm-2.6.launch.py
-```
-
-```shell
-ros2 run llama_demos llava_demo_node --ros-args -p prompt:="your prompt" -p image_url:="url of the image" -p use_image:="whether to send the image"
-```
-
-https://github.com/mgonzs13/llama_ros/assets/25979134/4a9ef92f-9099-41b4-8350-765336e3503c
-
-### Chat Template Demo
-
-```shell
-ros2 llama launch MiniCPM-2.6.yaml
-```
-
-<details>
-<summary>Click to expand MiniCPM-2.6.yaml</summary>
-
-```yaml
-use_llava: True
-
-n_ctx: 8192
-n_batch: 512
-n_gpu_layers: 20
-n_threads: -1
-n_predict: 8192
-
-model_repo: "openbmb/MiniCPM-V-2_6-gguf"
-model_filename: "ggml-model-Q4_K_M.gguf"
-
-mmproj_repo: "openbmb/MiniCPM-V-2_6-gguf"
-mmproj_filename: "mmproj-model-f16.gguf"
-```
-
-</details>
-
-```shell
-ros2 run llama_demos chatllama_demo_node
-```
-
-[ChatLlamaROS demo](https://github-production-user-asset-6210df.s3.amazonaws.com/55236157/363094669-c6de124a-4e91-4479-99b6-685fecb0ac20.webm?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240830%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240830T081232Z&X-Amz-Expires=300&X-Amz-Signature=f937758f4bcbaec7683e46ddb057fb642dc86a33cc8c736fca3b5ce2bf06ddac&X-Amz-SignedHeaders=host&actor_id=55236157&key_id=0&repo_id=622137360)
-
-### Chat Structed Output Demo
-
-```shell
-ros2 llama launch Qwen2.yaml
-```
-
-```shell
-ros2 run llama_demos chatllama_structured_demo_node
-```
-
-[Structured Output ChatLlama](https://github.com/user-attachments/assets/e0bf4031-50c0-4790-94a0-1f6aed5734ec)
-
-### Chat Tools Demo
-
-```shell
-ros2 llama launch Qwen2.yaml
-```
-
-```shell
-ros2 run llama_demos chatllama_tools_demo_node
-```
-
-[Tools ChatLlama](https://github.com/user-attachments/assets/b912ee29-1466-4d6a-888b-9a2d9c16ae1d)
-
-### Chat Reasoning Demo (DeepSeek-R1)
-
-```shell
-ros2 llama launch DeepSeek-R1.yaml
-```
-
-```shell
-ros2 run llama_demos chatllama_reasoning_demo_node
-```
-
-[DeepSeekR1 ChatLlama](https://github.com/user-attachments/assets/3f268614-eabc-4499-b50f-a76d76908d9d)
-
-### Langgraph Demo
-
-```shell
-ros2 llama launch Qwen2.yaml
-```
-
-<details>
-<summary>Click to expand Qwen2.yaml</summary>
-
-```yaml
-_ctx: 4096
-n_batch: 256
-n_gpu_layers: 29
-n_threads: -1
-n_predict: -1
-
-model_repo: "Qwen/Qwen2.5-Coder-7B-Instruct-GGUF"
-model_filename: "qwen2.5-coder-7b-instruct-q4_k_m-00001-of-00002.gguf"
-```
-
-</details>
-
-```shell
-ros2 run llama_demos chatllama_langgraph_demo_node
-```
-
-[Langgraph ChatLlama](https://github.com/user-attachments/assets/a0991cb4-f7f4-43d5-b629-3b1819aead0d)
-
 ### RAG Demo (LLM + chat template + RAG + Reranking + Stream)
 
 ```shell
@@ -1262,23 +1558,28 @@ ros2 llama launch ~/ros2_ws/src/llama_ros/llama_bringup/models/jina-reranker.yam
 ```
 
 ```shell
-ros2 llama launch Qwen2.yaml
+ros2 llama launch Qwen3.yaml
 ```
 
 <details>
-<summary>Click to expand Qwen2.yaml</summary>
+<summary>Click to expand Qwen3.yaml</summary>
 
 ```yaml
-_ctx: 4096
-n_batch: 256
-n_gpu_layers: 29
-n_threads: -1
-n_predict: -1
-
-model_repo: "Qwen/Qwen2.5-Coder-3B-Instruct-GGUF"
-model_filename: "qwen2.5-coder-3b-instruct-q4_k_m.gguf"
-
-stopping_words: ["<|im_end|>"]
+/**:
+  ros__parameters:
+    model:
+      repo: bartowski/Qwen_Qwen3-8B-GGUF
+      filename: Qwen_Qwen3-8B-Q4_K_M.gguf
+    context:
+      n_ctx: 4096
+      n_batch: 256
+      n_predict: -1
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: -1
+    prompt:
+      stopping_words: ["<|im_end|>"]
 ```
 
 </details>
@@ -1288,3 +1589,498 @@ ros2 run llama_demos llama_rag_demo_node
 ```
 
 https://github.com/user-attachments/assets/b4e3957d-1f92-427b-a1a8-cfc76737c0d6
+
+### Chat Template Demo
+
+```shell
+ros2 llama launch MiniCPM-2.6.yaml
+```
+
+<details>
+<summary>Click to expand MiniCPM-2.6.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: "openbmb/MiniCPM-V-2_6-gguf"
+      filename: "ggml-model-Q4_K_M.gguf"
+    mmproj:
+      repo: "openbmb/MiniCPM-V-2_6-gguf"
+      filename: "mmproj-model-f16.gguf"
+    context:
+      n_ctx: 8192
+      n_batch: 512
+      n_predict: 8192
+    gpu:
+      n_gpu_layers: 20
+    cpu:
+      n_threads: -1
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_demo_node
+```
+
+[ChatLlamaROS demo](https://github-production-user-asset-6210df.s3.amazonaws.com/55236157/363094669-c6de124a-4e91-4479-99b6-685fecb0ac20.webm?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240830%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240830T081232Z&X-Amz-Expires=300&X-Amz-Signature=f937758f4bcbaec7683e46ddb057fb642dc86a33cc8c736fca3b5ce2bf06ddac&X-Amz-SignedHeaders=host&actor_id=55236157&key_id=0&repo_id=622137360)
+
+### VLM Demo
+
+```shell
+ros2 launch llama_bringup minicpm-2.6.launch.py
+```
+
+```shell
+ros2 run llama_demos llava_demo_node
+```
+
+https://github.com/mgonzs13/llama_ros/assets/25979134/4a9ef92f-9099-41b4-8350-765336e3503c
+
+### Chat Multi-Image Demo
+
+```shell
+ros2 llama launch MiniCPM-2.6.yaml
+```
+
+<details>
+<summary>Click to expand MiniCPM-2.6.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: "openbmb/MiniCPM-V-2_6-gguf"
+      filename: "ggml-model-Q4_K_M.gguf"
+    mmproj:
+      repo: "openbmb/MiniCPM-V-2_6-gguf"
+      filename: "mmproj-model-f16.gguf"
+    context:
+      n_ctx: 8192
+      n_batch: 512
+      n_predict: 8192
+    gpu:
+      n_gpu_layers: 20
+    cpu:
+      n_threads: -1
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_multi_image_demo_node
+```
+
+### Chat Multi-Image (User Input) Demo
+
+```shell
+ros2 llama launch MiniCPM-2.6.yaml
+```
+
+<details>
+<summary>Click to expand MiniCPM-2.6.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: "openbmb/MiniCPM-V-2_6-gguf"
+      filename: "ggml-model-Q4_K_M.gguf"
+    mmproj:
+      repo: "openbmb/MiniCPM-V-2_6-gguf"
+      filename: "mmproj-model-f16.gguf"
+    context:
+      n_ctx: 8192
+      n_batch: 512
+      n_predict: 8192
+    gpu:
+      n_gpu_layers: 20
+    cpu:
+      n_threads: -1
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_multi_image_user_demo_node
+```
+
+### MTMD Audio Demo
+
+```shell
+ros2 llama launch Qwen2-Audio.yaml
+```
+
+<details>
+<summary>Click to expand Qwen2-Audio.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: mradermacher/Qwen2-Audio-7B-Instruct-GGUF
+      filename: Qwen2-Audio-7B-Instruct.Q4_K_M.gguf
+    mmproj:
+      repo: mradermacher/Qwen2-Audio-7B-Instruct-GGUF
+      filename: Qwen2-Audio-7B-Instruct.mmproj-f16.gguf
+    context:
+      n_ctx: 8192
+      n_batch: 512
+      n_predict: 8192
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: -1
+    prompt:
+      system_prompt_type: ChatML
+```
+
+</details>
+
+```shell
+ros2 run llama_demos mtmd_audio_demo_node
+```
+
+### Chat Audio Demo
+
+```shell
+ros2 llama launch Qwen2-Audio.yaml
+```
+
+<details>
+<summary>Click to expand Qwen2-Audio.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: mradermacher/Qwen2-Audio-7B-Instruct-GGUF
+      filename: Qwen2-Audio-7B-Instruct.Q4_K_M.gguf
+    mmproj:
+      repo: mradermacher/Qwen2-Audio-7B-Instruct-GGUF
+      filename: Qwen2-Audio-7B-Instruct.mmproj-f16.gguf
+    context:
+      n_ctx: 8192
+      n_batch: 512
+      n_predict: 8192
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: -1
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_audio_demo_node
+```
+
+### Chat Multi-Audio Demo
+
+```shell
+ros2 llama launch Qwen2-Audio.yaml
+```
+
+<details>
+<summary>Click to expand Qwen2-Audio.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: mradermacher/Qwen2-Audio-7B-Instruct-GGUF
+      filename: Qwen2-Audio-7B-Instruct.Q4_K_M.gguf
+    mmproj:
+      repo: mradermacher/Qwen2-Audio-7B-Instruct-GGUF
+      filename: Qwen2-Audio-7B-Instruct.mmproj-f16.gguf
+    context:
+      n_ctx: 8192
+      n_batch: 512
+      n_predict: 8192
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: -1
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_multi_audio_demo_node
+```
+
+### Chat Structured Output Demo
+
+```shell
+ros2 llama launch Qwen3.yaml
+```
+
+<details>
+<summary>Click to expand Qwen3.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: bartowski/Qwen_Qwen3-8B-GGUF
+      filename: Qwen_Qwen3-8B-Q4_K_M.gguf
+    context:
+      n_ctx: 4096
+      n_batch: 256
+      n_predict: -1
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: -1
+    prompt:
+      stopping_words: ["<|im_end|>"]
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_structured_demo_node
+```
+
+[Structured Output ChatLlama](https://github.com/user-attachments/assets/e0bf4031-50c0-4790-94a0-1f6aed5734ec)
+
+### Chat Tools Demo
+
+```shell
+ros2 llama launch Qwen3.yaml
+```
+
+<details>
+<summary>Click to expand Qwen3.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: bartowski/Qwen_Qwen3-8B-GGUF
+      filename: Qwen_Qwen3-8B-Q4_K_M.gguf
+    context:
+      n_ctx: 4096
+      n_batch: 256
+      n_predict: -1
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: -1
+    prompt:
+      stopping_words: ["<|im_end|>"]
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_tools_demo_node
+```
+
+[Tools ChatLlama](https://github.com/user-attachments/assets/b912ee29-1466-4d6a-888b-9a2d9c16ae1d)
+
+### Streaming Tools Demo
+
+```shell
+ros2 llama launch Qwen3.yaml
+```
+
+<details>
+<summary>Click to expand Qwen3.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: bartowski/Qwen_Qwen3-8B-GGUF
+      filename: Qwen_Qwen3-8B-Q4_K_M.gguf
+    context:
+      n_ctx: 4096
+      n_batch: 256
+      n_predict: -1
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: -1
+    prompt:
+      stopping_words: ["<|im_end|>"]
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_streaming_tools_demo_node
+```
+
+### Chat Reasoning Demo (DeepSeek-R1)
+
+```shell
+ros2 llama launch DeepSeek-R1.yaml
+```
+
+<details>
+<summary>Click to expand DeepSeek-R1.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF
+      filename: DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf
+    context:
+      n_ctx: 4096
+      n_batch: 256
+      n_predict: -1
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: 1
+    prompt:
+      chat_template_file: llama-cpp-deepseek-r1.jinja
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_reasoning_demo_node
+```
+
+[DeepSeekR1 ChatLlama](https://github.com/user-attachments/assets/3f268614-eabc-4499-b50f-a76d76908d9d)
+
+### Reasoning + Tools Demo
+
+```shell
+ros2 llama launch Qwen3.yaml
+```
+
+<details>
+<summary>Click to expand Qwen3.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: bartowski/Qwen_Qwen3-8B-GGUF
+      filename: Qwen_Qwen3-8B-Q4_K_M.gguf
+    context:
+      n_ctx: 4096
+      n_batch: 256
+      n_predict: -1
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: -1
+    prompt:
+      stopping_words: ["<|im_end|>"]
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_reasoning_tools_demo_node
+```
+
+### PDDL Demo
+
+```shell
+ros2 llama launch Qwen3.yaml
+```
+
+<details>
+<summary>Click to expand Qwen3.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: bartowski/Qwen_Qwen3-8B-GGUF
+      filename: Qwen_Qwen3-8B-Q4_K_M.gguf
+    context:
+      n_ctx: 4096
+      n_batch: 256
+      n_predict: -1
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: -1
+    prompt:
+      stopping_words: ["<|im_end|>"]
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_pddl_demo_node
+```
+
+### Agent Demo
+
+```shell
+ros2 llama launch Qwen3.yaml
+```
+
+<details>
+<summary>Click to expand Qwen3.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: bartowski/Qwen_Qwen3-8B-GGUF
+      filename: Qwen_Qwen3-8B-Q4_K_M.gguf
+    context:
+      n_ctx: 4096
+      n_batch: 256
+      n_predict: -1
+    gpu:
+      n_gpu_layers: -1
+    cpu:
+      n_threads: -1
+    prompt:
+      stopping_words: ["<|im_end|>"]
+```
+
+</details>
+
+```shell
+ros2 run llama_demos chatllama_agent_demo_node
+```
+
+[Agent ChatLlama](https://github.com/user-attachments/assets/a0991cb4-f7f4-43d5-b629-3b1819aead0d)
+
+### Parallel Slots Demo
+
+This demo shows how to use multiple parallel slots (`context.n_parallel`) to process several requests concurrently via continuous batching. Launch the model with `n_parallel: 4`:
+
+```shell
+ros2 llama launch SmolLM2-slots.yaml
+```
+
+<details>
+<summary>Click to expand SmolLM2-slots.yaml</summary>
+
+```yaml
+/**:
+  ros__parameters:
+    model:
+      repo: bartowski/SmolLM2-1.7B-Instruct-GGUF
+      filename: SmolLM2-1.7B-Instruct-Q4_K_L.gguf
+    context:
+      n_ctx: 2048
+      n_batch: 8
+      n_predict: 2048
+      n_parallel: 4
+    gpu:
+      n_gpu_layers: 0
+    cpu:
+      n_threads: -1
+    prompt:
+      system_prompt_type: ChatML
+```
+
+</details>
+
+```shell
+ros2 run llama_demos llama_slots_demo_node
+```

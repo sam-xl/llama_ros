@@ -27,7 +27,7 @@
 import time
 import rclpy
 from random import randint
-from langchain.tools import tool
+from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage
 from llama_ros.langchain import ChatLlamaROS
 import asyncio
@@ -79,7 +79,7 @@ async def main():
                 f"Tool received: {gathered.tool_calls[-1]['name']}({gathered.tool_calls[-1]['args']})"
             )
 
-        output_tokens = chunk.usage_metadata.get("output_tokens", 0)
+    output_tokens = gathered.usage_metadata["output_tokens"]
 
     end_time = time.time()
     total_eval_time = end_time - eval_time

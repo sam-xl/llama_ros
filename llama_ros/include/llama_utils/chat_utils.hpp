@@ -11,7 +11,7 @@
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,6 +25,7 @@
 
 #include <common.h>
 #include <llama_msgs/action/generate_chat_completions.hpp>
+#include <llama_msgs/action/generate_response.hpp>
 #include <memory>
 #include <random>
 #include <rclcpp/rclcpp.hpp>
@@ -32,136 +33,19 @@
 
 #include "chat.h"
 #include "llama_msgs/msg/chat_reasoning_format.hpp"
-#include "llama_ros/llama.hpp"
 #include "llama_utils/llama_params.hpp"
 
+// Forward declarations to avoid circular dependencies
+namespace llama_ros {
+class Llama;
+struct ServerTaskResultCompletion;
+struct CompletionOutput;
+} // namespace llama_ros
+
 namespace llama_utils {
-
-/**
- * @brief Represents a log probability for a token.
- */
-struct LogProb {
-  /**
-   * @brief The token ID.
-   */
-  int token;
-
-  /**
-   * @brief The log probability of the token.
-   */
-  float probability;
-
-  /**
-   * @brief The text representation of the token.
-   */
-  std::string text;
-};
-
-/**
- * @brief Represents a selected log probability and its associated data.
- */
-struct SelectedLogProb {
-  /**
-   * @brief The chosen token and its log probability.
-   */
-  LogProb chosen_token;
-
-  /**
-   * @brief A list of log probabilities for other tokens.
-   */
-  std::vector<LogProb> data;
-};
-
 /**
  * @brief Represents the result of a chat response.
  */
-struct ResponseResult {
-  /**
-   * @brief The index of the response in a sequence.
-   */
-  int index;
-
-  /**
-   * @brief The content of the chat response.
-   */
-  std::string content;
-
-  /**
-   * @brief The list of token IDs in the response.
-   */
-  std::vector<int> tokens;
-
-  /**
-   * @brief Indicates if the response is streamed.
-   */
-  bool stream;
-
-  /**
-   * @brief The prompt used to generate the response.
-   */
-  std::string prompt;
-
-  /**
-   * @brief Build information for debugging purposes.
-   */
-  std::string build_info;
-
-  /**
-   * @brief The number of tokens decoded in the response.
-   */
-  int32_t n_decoded;
-
-  /**
-   * @brief The number of tokens in the prompt.
-   */
-  int32_t n_prompt_tokens;
-
-  /**
-   * @brief The number of tokens retrieved from the cache.
-   */
-  int32_t n_tokens_cached;
-
-  /**
-   * @brief The stop condition for the response generation.
-   */
-  llama_ros::StopType stop;
-
-  /**
-   * @brief Indicates if post-sampling probabilities are included.
-   */
-  bool post_sampling_probs;
-
-  /**
-   * @brief The output probabilities for selected tokens.
-   */
-  std::vector<SelectedLogProb> probs_output;
-
-  /**
-   * @brief Additional fields included in the response.
-   */
-  std::vector<std::string> response_fields;
-
-  /**
-   * @brief The OpenAI-compatible chat format.
-   */
-  common_chat_format oaicompat_chat_format = COMMON_CHAT_FORMAT_CONTENT_ONLY;
-
-  /**
-   * @brief The OpenAI-compatible model name.
-   */
-  std::string oaicompat_model;
-
-  /**
-   * @brief The OpenAI-compatible completion ID.
-   */
-  std::string oaicompat_cmpl_id;
-
-  /**
-   * @brief The OpenAI-compatible chat syntax. Used while streaming the
-   * response.
-   */
-  common_chat_msg chat_msg;
-};
 
 /**
  * @brief Generates a random alphanumeric string.
@@ -183,6 +67,47 @@ static inline std::string random_string(int string_size) {
   }
 
   return result;
+}
+
+/**
+ * @brief Validates UTF-8 encoding and returns the safe truncation length.
+ *
+ * Checks the last few bytes of the string to detect if a multi-byte
+ * UTF-8 character has been cut off. Returns the safe length at which
+ * the string can be truncated without splitting a character.
+ *
+ * @param text The UTF-8 encoded string to validate.
+ * @return The safe truncation length in bytes.
+ */
+inline size_t validate_utf8(const std::string &text) {
+  size_t len = text.size();
+  if (len == 0)
+    return 0;
+
+  // Check the last few bytes to see if a multi-byte character is cut off
+  for (size_t i = 1; i <= 4 && i <= len; ++i) {
+    unsigned char c = text[len - i];
+    // Check for start of a multi-byte sequence from the end
+    if ((c & 0xE0) == 0xC0) {
+      // 2-byte character start: 110xxxxx
+      // Needs at least 2 bytes
+      if (i < 2)
+        return len - i;
+    } else if ((c & 0xF0) == 0xE0) {
+      // 3-byte character start: 1110xxxx
+      // Needs at least 3 bytes
+      if (i < 3)
+        return len - i;
+    } else if ((c & 0xF8) == 0xF0) {
+      // 4-byte character start: 11110xxx
+      // Needs at least 4 bytes
+      if (i < 4)
+        return len - i;
+    }
+  }
+
+  // If no cut-off multi-byte character is found, return full length
+  return len;
 }
 
 static inline std::string random_string() { return random_string(32); }
@@ -212,6 +137,15 @@ inline float logit(float x) {
  */
 common_chat_tool_choice parse_chat_tool_choice(int choice);
 
+/**
+ * @brief Parses a reasoning format from an integer value.
+ *
+ * Converts a numeric reasoning format identifier (typically from a ROS
+ * message) into the corresponding common_reasoning_format enum value.
+ *
+ * @param reasoning_format The integer representing the reasoning format.
+ * @return The parsed reasoning format enum value.
+ */
 common_reasoning_format parse_reasoning_format(const int reasoning_format);
 
 /**
@@ -220,7 +154,7 @@ common_reasoning_format parse_reasoning_format(const int reasoning_format);
  * @param goal The goal shared pointer from the action server.
  * @return The parsed chat templates inputs.
  */
-struct common_chat_templates_inputs parse_chat_completions_goal(
+common_chat_templates_inputs parse_chat_completions_goal(
     const std::shared_ptr<
         const llama_msgs::action::GenerateChatCompletions::Goal>
         goal);
@@ -232,27 +166,42 @@ struct common_chat_templates_inputs parse_chat_completions_goal(
  * @return The generated result for the action.
  */
 llama_msgs::action::GenerateChatCompletions::Result
-generate_chat_completions_result(const ResponseResult &result);
+generate_chat_completions_result(
+    const llama_ros::ServerTaskResultCompletion &result);
 
 /**
  * @brief Generates feedback for a chat completion action.
  *
  * @param result The response result to convert.
+ * @param deltas The message deltas.
+ * @param probs The token probabilities for this token (with text already
+ * filled).
  * @return A vector of feedback messages for the action.
  */
 std::vector<llama_msgs::action::GenerateChatCompletions::Feedback>
 generate_chat_completions_feedback(
-    const ResponseResult &result,
-    std::vector<common_chat_msg_diff> deltas = {});
+    const llama_ros::ServerTaskResultCompletionPartial &result,
+    std::vector<common_chat_msg_diff> deltas = {},
+    std::vector<llama_msgs::msg::TokenProb> probs = {});
 
 /**
  * @brief Represents the context for chat completions.
  */
 struct ChatCompletionsContext {
-  common_chat_syntax oaicompat_chat_syntax;
+  common_chat_parser_params oaicompat_chat_syntax;
   common_params_sampling sparams;
   common_chat_templates_inputs prompt_format_config;
   common_chat_params chat_prompt_instance;
+};
+
+/**
+ * @brief Represents the context for text completions.
+ */
+struct CompletionContext {
+  std::string prompt;
+  common_params_sampling sparams;
+  std::vector<std::string> stop;
+  bool reset;
 };
 
 /**
@@ -267,6 +216,60 @@ ChatCompletionsContext prepare_chat_completions_call(
         const llama_msgs::action::GenerateChatCompletions::Goal> &goal,
     llama_ros::Llama *llama);
 
+/**
+ * @brief Prepares the context for text completion.
+ *
+ * @param goal The goal shared pointer from the action server.
+ * @param llama The Llama instance.
+ * @return The prepared completion context.
+ */
+CompletionContext prepare_completion_call(
+    const std::shared_ptr<const llama_msgs::action::GenerateResponse::Goal>
+        &goal,
+    llama_ros::Llama *llama);
+
+/**
+ * @brief Converts ServerTaskResultCompletion to ROS result message.
+ *
+ * @param result The internal completion result.
+ * @param llama The Llama instance for detokenization.
+ * @return The ROS result message.
+ */
+llama_msgs::action::GenerateResponse::Result
+generate_completion_result(const llama_ros::ServerTaskResultCompletion &result,
+                           llama_ros::Llama *llama);
+
+/**
+ * @brief Creates feedback message from CompletionOutput.
+ *
+ * @param completion The completion output containing token data.
+ * @param llama The Llama instance for detokenization.
+ * @return The ROS feedback message.
+ */
+llama_msgs::action::GenerateResponse::Feedback
+create_completion_feedback(const llama_ros::CompletionOutput &completion,
+                           llama_ros::Llama *llama);
+
+/**
+ * @brief Converts a UUID byte array to a 32-bit integer.
+ *
+ * Hashes the 16-byte UUID into a compact int32 representation,
+ * suitable for use as a slot or goal identifier.
+ *
+ * @param uuid The 16-byte UUID array.
+ * @return A 32-bit integer derived from the UUID.
+ */
+int32_t uuid_to_int32(const std::array<uint8_t, 16> &uuid);
+
+/**
+ * @brief Generates a random 64-bit unsigned integer.
+ *
+ * Uses a random device to produce a uniformly distributed uint64 value,
+ * used for assigning unique goal identifiers.
+ *
+ * @return A random 64-bit unsigned integer.
+ */
+uint64_t generate_random_uint64();
 } // namespace llama_utils
 
 #endif

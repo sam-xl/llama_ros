@@ -1,9 +1,21 @@
-n_ctx: 2048
-n_batch: 1024
-n_gpu_layers: 0
-n_threads: -1
-n_predict: 2048
-reranking: true
+/**:
+  ros__parameters:
+    # Model parameters
+    model:
+      repo: gpustack/bge-reranker-v2-m3-GGUF
+      filename: bge-reranker-v2-m3-Q4_K_M.gguf
 
-model_repo: "gpustack/bge-reranker-v2-m3-GGUF"
-model_filename: "bge-reranker-v2-m3-Q4_K_M.gguf"
+    # Context / inference parameters
+    context:
+      n_ctx: 2048
+      n_batch: 1024
+      n_predict: 2048
+      reranking: true
+
+    # GPU / backend parameters
+    gpu:
+      n_gpu_layers: 0
+
+    # CPU parameters
+    cpu:
+      n_threads: -1

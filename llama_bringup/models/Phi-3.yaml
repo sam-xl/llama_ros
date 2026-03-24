@@ -1,10 +1,24 @@
-n_ctx: 2048
-n_batch: 8
-n_gpu_layers: 0
-n_threads: 1
-n_predict: 2048
+/**:
+  ros__parameters:
+    # Model parameters
+    model:
+      repo: bartowski/Phi-3.5-mini-instruct-GGUF
+      filename: Phi-3.5-mini-instruct-Q4_K_M.gguf
 
-model_repo: "bartowski/Phi-3.5-mini-instruct-GGUF"
-model_filename: "Phi-3.5-mini-instruct-Q4_K_M.gguf"
+    # Context / inference parameters
+    context:
+      n_ctx: 2048
+      n_batch: 8
+      n_predict: 2048
 
-system_prompt_type: "Phi-3"
+    # GPU / backend parameters
+    gpu:
+      n_gpu_layers: 0
+
+    # CPU parameters
+    cpu:
+      n_threads: 1
+
+    # Prompt & chat parameters
+    prompt:
+      system_prompt_type: Phi-3

@@ -11,7 +11,7 @@
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,6 +33,7 @@
 
 #include "llama_msgs/action/generate_chat_completions.hpp"
 #include "llama_msgs/action/generate_response.hpp"
+#include "llama_ros/llama.hpp"
 #include "llama_ros/llama_node.hpp"
 #include "llava_ros/llava.hpp"
 
@@ -118,8 +119,8 @@ protected:
    * @param goal_handle A shared pointer to the goal handle for the
    * GenerateResponse action.
    */
-  void execute(
-      const std::shared_ptr<GoalHandleGenerateResponse> goal_handle) override;
+  void execute(const std::shared_ptr<GoalHandleGenerateResponse> goal_handle,
+               int slot_id) override;
 
   /**
    * @brief Checks if the GenerateChatCompletions goal is empty.
@@ -143,8 +144,8 @@ protected:
    * GenerateChatCompletions action.
    */
   void execute_chat_completions(
-      const std::shared_ptr<GoalHandleGenerateChatCompletions> goal_handle)
-      override;
+      const std::shared_ptr<GoalHandleGenerateChatCompletions> goal_handle,
+      int slot_id) override;
 
   /**
    * @brief Load images from a vector of sensor_msgs::msg::Image messages.

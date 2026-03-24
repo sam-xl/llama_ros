@@ -1,8 +1,11 @@
+uint32 seed                         4294967295                      # the seed used to initialize llama_sampler (4294967295 = LLAMA_DEFAULT_SEED, i.e. random)
 int32 n_prev                        64                              # number of previous tokens to remember
-int32 n_probs                       1                               # if greater than 0, output the probabilities of top n_probs tokens
+int32 n_probs                       0                               # if greater than 0, output the probabilities of top n_probs tokens
 int32 min_keep                      0                               # 0 = disabled, otherwise samplers should return at least min_keep tokens
 
 bool ignore_eos                     false                           # ignore end of stream token and continue generating (implies --logit-bias 2-inf)
+bool no_perf                        false                           # disable performance metrics
+bool timing_per_token               false                           # collect per-token timing data
 LogitBiasArray logit_bias                                           # logit bias for specific tokens
 LogitBiasArray logit_bias_eog                                       # pre-calculated logit biases for EOG tokens
 
@@ -29,14 +32,18 @@ int32 dry_allowed_length            2                               # tokens ext
 int32 dry_penalty_last_n            -1                              # how many tokens to scan for repetitions (0 = disable penalty, -1 = context size)
 string[] dry_sequence_breakers      ["\\n", ":", "\\\"", "*"]       # default sequence breakers for DRY  
 
-int32 mirostat                      0                               # Mirostart sampling (0 = disabled, 1 = mirostat, 2 = mirostat 2.0)
+float32 adaptive_target             -1.0                            # adaptive-p target probability (valid range 0.0 to 1.0; negative = disabled)
+float32 adaptive_decay              0.90                            # adaptive-p EMA decay for adaptation (valid range 0.0 - 0.99)
+
+int32 mirostat                      0                               # Mirostat sampling (0 = disabled, 1 = mirostat, 2 = mirostat 2.0)
 float32 mirostat_eta                0.10                            # Mirostat learning rate, parameter eta
 float32 mirostat_tau                5.0                             # Mirostat target entropy, parameter tau
 
-string samplers_sequence            "edskypmxt"                       # PENALTIES, DRY, TOP_N_SIGMA, TOP_K, TYPICAL_P, TOP_P, MIN_P, XTC, TEMP
+string samplers_sequence            "edskypmxt"                     # PENALTIES, DRY, TOP_N_SIGMA, TOP_K, TYPICAL_P, TOP_P, MIN_P, XTC, TEMP
 
 string grammar                      ""                              # optional BNF-like grammar to constrain sampling
 string grammar_schema               ""                              # grammar schema that defines a JSON BNF grammar
 bool grammar_lazy                                                   # whether to use lazy grammar
 GrammarTrigger[] grammar_triggers                                   # triggers for lazy grammar
 int32[] preserved_tokens                                            # tokens to preserve
+bool backend_sampling               false                           # use backend (hardware-accelerated) sampling if available

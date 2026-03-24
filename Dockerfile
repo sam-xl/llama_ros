@@ -33,14 +33,15 @@ SHELL ["/bin/bash", "-c"]
 COPY . /home/$USER/ros2_ws/src
 RUN chown -R ros:ros . 
 
-# Install dependencies
-RUN apt-get update \
-    && apt-get -y --quiet --no-install-recommends install \
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     gcc \
     git \
     wget \
     python3 \
-    python3-pip
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
 
 USER $USER
 
@@ -50,7 +51,7 @@ RUN sudo apt update && sudo rosdep init && rosdep update && rosdep install --fro
 # Install all Python Reqs
 RUN sudo /opt/venv/bin/pip install -r src/requirements.txt --break-system-packages --ignore-installed --index-url https://pypi.org/simple/ 
 
-# Colcon the ws
+# Build the workspace with colcon
 FROM deps AS builder
 USER $USER
 WORKDIR /home/$USER/ros2_ws
@@ -63,5 +64,4 @@ ARG ROS_DISTRO
 # Source the ROS 2 setup file
 RUN echo "source /home/$USER/ros2_ws/install/setup.bash" >> ~/.bashrc
 
-# Run a default command, e.g., starting a bash shell
 CMD ["bash"]

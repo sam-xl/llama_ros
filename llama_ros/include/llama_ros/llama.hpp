@@ -23,9 +23,14 @@
 #ifndef LLAMA_ROS__LLAMA_HPP
 #define LLAMA_ROS__LLAMA_HPP
 
+#include <condition_variable>
+#include <cstdint>
 #include <functional>
+#include <future>
 #include <memory>
 #include <mutex>
+#include <optional>
+#include <queue>
 #include <string>
 #include <vector>
 
@@ -33,427 +38,25 @@
 #include "common.h"
 #include "llama.h"
 #include "sampling.h"
+#include "speculative.h"
 
+#include "llama_ros/metadata.hpp"
+#include "llama_ros/request_handler.hpp"
+#include "llama_ros/result.hpp"
+#include "llama_ros/server_slot.hpp"
+#include "llama_ros/server_task_result.hpp"
+#include "llama_ros/slot_manager.hpp"
+#include "llama_ros/task_registry.hpp"
+#include "llama_ros/types.hpp"
+#include "llama_utils/chat_formatter.hpp"
 #include "llama_utils/spinner.hpp"
 
+// Forward declarations to avoid circular dependencies
+namespace llama_utils {
+struct ChatCompletionsContext;
+}
+
 namespace llama_ros {
-
-/**
- * @brief Represents the probability of a token.
- */
-struct TokenProb {
-  /**
-   * @brief The token.
-   */
-  llama_token token;
-
-  /**
-   * @brief The probability of the token.
-   */
-  float probability;
-};
-
-/**
- * @brief Represents a Low-Rank Adaptation (LoRA) configuration.
- */
-struct LoRA {
-  /**
-   * @brief The ID of the LoRA configuration.
-   */
-  int id;
-
-  /**
-   * @brief The file path to the LoRA model.
-   */
-  std::string path;
-
-  /**
-   * @brief The scaling factor for the LoRA model.
-   */
-  float scale;
-};
-
-/**
- * @brief Represents the output of a completion operation.
- */
-struct CompletionOutput {
-  /**
-   * @brief The probabilities of tokens in the completion.
-   */
-  std::vector<TokenProb> probs;
-
-  /**
-   * @brief The token generated in the completion.
-   */
-  llama_token token;
-};
-
-/**
- * @brief Represents the stopping condition for a process.
- */
-enum StopType {
-  NO_STOP,      /**< @brief No stopping condition. */
-  FULL_STOP,    /**< @brief Full stop condition. */
-  PARTIAL_STOP, /**< @brief Partial stop condition. */
-  CANCEL,       /**< @brief Cancel the process. */
-  ABORT         /**< @brief Abort the process. */
-};
-
-/**
- * @brief Represents the output of a response generation process.
- */
-struct ResponseOutput {
-  /**
-   * @brief The list of completion outputs.
-   */
-  std::vector<CompletionOutput> completions;
-
-  /**
-   * @brief The stopping condition for the response generation.
-   */
-  StopType stop;
-};
-
-/**
- * @brief Represents the output of an embedding generation process.
- */
-struct EmbeddingsOuput {
-  /**
-   * @brief The generated embeddings.
-   */
-  std::vector<float> embeddings;
-
-  /**
-   * @brief The number of tokens used to generate the embeddings.
-   */
-  int32_t n_tokens;
-};
-
-/**
- * @brief A structure representing the metadata of a model.
- */
-struct Metadata {
-  /**
-   * @brief General information about the model.
-   */
-  struct GeneralInfo {
-    /**
-     * @brief The architecture of the model.
-     */
-    std::string architecture;
-
-    /**
-     * @brief The quantization version of the model.
-     */
-    uint32_t quantization_version;
-
-    /**
-     * @brief The alignment of the model.
-     */
-    uint32_t alignment;
-
-    /**
-     * @brief The name of the model.
-     */
-    std::string name;
-
-    /**
-     * @brief The author of the model.
-     */
-    std::string author;
-
-    /**
-     * @brief The version of the model.
-     */
-    std::string version;
-
-    /**
-     * @brief The organization associated with the model.
-     */
-    std::string organization;
-
-    /**
-     * @brief The base name of the model file.
-     */
-    std::string basename;
-
-    /**
-     * @brief The fine-tuning information of the model.
-     */
-    std::string finetune;
-
-    /**
-     * @brief A description of the model.
-     */
-    std::string description;
-
-    /**
-     * @brief The entity that quantized the model.
-     */
-    std::string quantized_by;
-
-    /**
-     * @brief The size label of the model.
-     */
-    std::string size_label;
-
-    /**
-     * @brief The license type of the model.
-     */
-    std::string license;
-
-    /**
-     * @brief The name of the license.
-     */
-    std::string license_name;
-
-    /**
-     * @brief The link to the license.
-     */
-    std::string license_link;
-
-    /**
-     * @brief The URL of the model.
-     */
-    std::string url;
-
-    /**
-     * @brief The repository URL of the model.
-     */
-    std::string repo_url;
-
-    /**
-     * @brief The DOI (Digital Object Identifier) of the model.
-     */
-    std::string doi;
-
-    /**
-     * @brief The UUID (Universally Unique Identifier) of the model.
-     */
-    std::string uuid;
-
-    /**
-     * @brief Tags associated with the model.
-     */
-    std::vector<std::string> tags;
-
-    /**
-     * @brief Languages supported by the model.
-     */
-    std::vector<std::string> languages;
-
-    /**
-     * @brief Datasets used to train the model.
-     */
-    std::vector<std::string> datasets;
-
-    /**
-     * @brief The file type of the model.
-     */
-    std::string file_type;
-  };
-
-  /**
-   * @brief A structure representing the attention information of a model.
-   */
-  struct AttentionInfo {
-    /**
-     * @brief The number of attention heads.
-     */
-    uint64_t head_count;
-
-    /**
-     * @brief The number of key-value attention heads.
-     */
-    uint64_t head_count_kv;
-
-    /**
-     * @brief The maximum alibi bias.
-     */
-    float max_alibi_bias;
-
-    /**
-     * @brief The clamp value for key-query-value operations.
-     */
-    float clamp_kqv;
-
-    /**
-     * @brief The epsilon value for layer normalization.
-     */
-    float layer_norm_epsilon;
-
-    /**
-     * @brief The epsilon value for RMS layer normalization.
-     */
-    float layer_norm_rms_epsilon;
-
-    /**
-     * @brief The length of the key vector.
-     */
-    uint32_t key_length;
-
-    /**
-     * @brief The length of the value vector.
-     */
-    uint32_t value_length;
-  };
-
-  /**
-   * @brief A structure representing the RoPE (Rotary Positional Encoding) of a
-   * model.
-   */
-  struct RoPEInfo {
-    /**
-     * @brief The number of dimensions used in RoPE.
-     */
-    uint64_t dimension_count;
-
-    /**
-     * @brief The base frequency for RoPE.
-     */
-    float freq_base;
-
-    /**
-     * @brief The scaling type used in RoPE.
-     */
-    std::string scaling_type;
-
-    /**
-     * @brief The scaling factor for RoPE.
-     */
-    float scaling_factor;
-
-    /**
-     * @brief The original context length for scaling.
-     */
-    uint32_t scaling_original_context_length;
-
-    /**
-     * @brief Indicates whether the model was fine-tuned with scaling.
-     */
-    bool scaling_finetuned;
-  };
-
-  /**
-   * @brief A structure representing the model information.
-   */
-  struct ModelInfo {
-    /**
-     * @brief The context length of the model.
-     */
-    uint64_t context_length;
-
-    /**
-     * @brief The embedding length of the model.
-     */
-    uint64_t embedding_length;
-
-    /**
-     * @brief The number of blocks in the model.
-     */
-    uint64_t block_count;
-
-    /**
-     * @brief The feed-forward length of the model.
-     */
-    uint64_t feed_forward_length;
-
-    /**
-     * @brief Indicates whether parallel residual connections are used.
-     */
-    bool use_parallel_residual;
-
-    /**
-     * @brief The data layout of the model's tensors.
-     */
-    std::string tensor_data_layout;
-
-    /**
-     * @brief The number of experts in the model.
-     */
-    uint32_t expert_count;
-
-    /**
-     * @brief The number of experts used in the model.
-     */
-    uint32_t expert_used_count;
-
-    /**
-     * @brief The attention information of the model.
-     */
-    AttentionInfo attention;
-
-    /**
-     * @brief The RoPE (Rotary Positional Encoding) information of the model.
-     */
-    RoPEInfo rope;
-  };
-
-  /**
-   * @brief A structure representing the tokenizer information.
-   */
-  struct TokenizerInfo {
-    /**
-     * @brief The tokenizer model used.
-     */
-    std::string model;
-
-    /**
-     * @brief The ID of the beginning-of-sequence (BOS) token.
-     */
-    uint32_t bos_token_id;
-
-    /**
-     * @brief The ID of the end-of-sequence (EOS) token.
-     */
-    uint32_t eos_token_id;
-
-    /**
-     * @brief The ID of the unknown token.
-     */
-    uint32_t unknown_token_id;
-
-    /**
-     * @brief The ID of the padding token.
-     */
-    uint32_t padding_token_id;
-
-    /**
-     * @brief The ID of the separator token.
-     */
-    uint32_t separator_token_id;
-
-    /**
-     * @brief Indicates whether a BOS token is added.
-     */
-    bool add_bos_token;
-
-    /**
-     * @brief The chat template used for tokenization.
-     */
-    std::string chat_template;
-  };
-
-  /**
-   * @brief General information about the model.
-   */
-  GeneralInfo general;
-
-  /**
-   * @brief Detailed information about the model.
-   */
-  ModelInfo model;
-
-  /**
-   * @brief Information about the tokenizer used by the model.
-   */
-  TokenizerInfo tokenizer;
-};
-
-/**
- * @brief A callback function type for handling generated responses.
- */
-using GenerateResponseCallback = std::function<void(struct CompletionOutput)>;
 
 /**
  * @brief A class representing a llama.cpp.
@@ -467,21 +70,63 @@ class Llama {
 
 public:
   /**
+   * @brief Common parameters for the model.
+   *
+   * This structure contains configuration parameters used to initialize and
+   * manage the model.
+   */
+  common_params params;
+
+  /**
    * @brief Constructor for the Llama class.
    *
-   * This constructor initializes the Llama object with the given parameters,
+   * This constructor initializes the Llama object with the given parameters.
    *
    * @param params The common parameters for the model.
    * @param system_prompt The system prompt to be used.
    * @param initial_reset Whether to reset the model initially.
    */
-  Llama(const struct common_params &params, std::string system_prompt = "",
+  Llama(const common_params &params, std::string system_prompt = "",
         bool initial_reset = true);
 
   /**
    * @brief Destructor for the Llama class.
    */
   virtual ~Llama();
+
+  /**
+   * @brief Processes a single token for the given slot.
+   *
+   * Samples the next token, checks for stop conditions, and populates
+   * the completion output with the result.
+   *
+   * @param slot The server slot currently being processed.
+   * @param result Pointer to the output structure to populate.
+   * @return True if more tokens should be generated, false if generation
+   *         should stop.
+   */
+  bool process_token(ServerSlot *slot, CompletionOutput *result);
+
+  /**
+   * @brief Main processing loop for the server.
+   *
+   * Continuously processes pending tasks by decoding prompt tokens,
+   * sampling new tokens, and dispatching results until cancelled.
+   * This method is typically run in a dedicated background thread.
+   */
+  void run_loop();
+
+  /**
+   * @brief Processes a multimodal (mtmd) chunk for the given slot.
+   *
+   * This virtual method allows derived classes (e.g., Llava) to handle
+   * multimodal input chunks such as images or audio during prompt
+   * processing.
+   *
+   * @param slot The server slot containing the multimodal chunk.
+   * @return True if the chunk was processed successfully, false otherwise.
+   */
+  virtual bool process_mtmd_chunk(llama_ros::ServerSlot *slot);
 
   /**
    * @brief Tokenizes the given text into a vector of tokens.
@@ -515,31 +160,25 @@ public:
   void cancel();
 
   /**
+   * @brief Cancels a specific goal by its ID.
+   *
+   * @param goal_id The ID of the goal to cancel.
+   */
+  void cancel_goal(uint64_t goal_id);
+
+  /**
    * @brief Lists all available LoRA (Low-Rank Adaptation) models.
    *
    * @return A vector of LoRA structures representing the available models.
    */
-  std::vector<struct LoRA> list_loras();
+  std::vector<LoRA> list_loras();
 
   /**
    * @brief Updates the current LoRA models with the provided list.
    *
    * @param loras A vector of LoRA structures to update the models.
    */
-  void update_loras(std::vector<struct LoRA> loras);
-
-  /**
-   * @brief Truncates a vector of tokens to a specified size.
-   *
-   * @param tokens The vector of tokens to truncate.
-   * @param limit_size The maximum number of tokens to retain.
-   * @param add_eos Whether to add an end-of-sequence (EOS) token after
-   * truncation.
-   * @return A truncated vector of tokens.
-   */
-  std::vector<llama_token>
-  truncate_tokens(const std::vector<llama_token> &tokens, int limit_size,
-                  bool add_eos = true);
+  void update_loras(std::vector<LoRA> loras);
 
   /**
    * @brief Generates embeddings for a given input prompt.
@@ -547,41 +186,95 @@ public:
    * @param input_prompt The input text prompt for which embeddings are
    * generated.
    * @param normalization The normalization method to apply (default is 2).
-   * @return A structure containing the generated embeddings and token count.
+   * @return A Result containing embeddings and token count, or an error
+   * message.
    */
-  struct EmbeddingsOuput generate_embeddings(const std::string &input_prompt,
-                                             int normalization = 2);
+  Result<ServerTaskResultEmbedding>
+  generate_embeddings(const std::string &text);
 
   /**
-   * @brief Generates embeddings for a given vector of tokens.
+   * @brief Handles a reranking request for a query-document pair.
    *
-   * @param tokens The vector of tokens for which embeddings are generated.
-   * @param normalization The normalization method to apply (default is 2).
-   * @return A structure containing the generated embeddings and token count.
-   */
-  struct EmbeddingsOuput
-  generate_embeddings(const std::vector<llama_token> &tokens,
-                      int normalization = 2);
-
-  /**
-   * @brief Ranks the relevance of a document to a given query.
+   * Prepares the given slot for computing the relevance score between
+   * the query and the document.
    *
    * @param query The query string.
-   * @param document The document string to rank.
-   * @return A floating-point score representing the relevance of the document.
+   * @param document The document string to rank against the query.
+   * @param slot The server slot to use for processing.
    */
-  float rank_document(const std::string &query, const std::string &document);
+  void handle_rerank_req(const std::string &query, const std::string &document,
+                         ServerSlot *slot);
+
+  /**
+   * @brief Handles an embeddings generation request.
+   *
+   * Prepares the given slot for generating embeddings from the input prompt.
+   *
+   * @param input_prompt The input text to generate embeddings for.
+   * @param slot The server slot to use for processing.
+   */
+  void handle_embeddings_req(const std::string &input_prompt, ServerSlot *slot);
+
+  /**
+   * @brief Handles a text completion request.
+   *
+   * Prepares the given slot for generating a text completion from the
+   * input prompt using the specified sampling parameters.
+   *
+   * @param input_prompt The input text prompt.
+   * @param slot The server slot to use for processing.
+   * @param sparams The sampling parameters for generation.
+   * @param callback Callback invoked for each generated token (streaming).
+   * @param stop A list of stop sequences to terminate generation.
+   * @param reset Whether to reset the slot state before processing.
+   */
+  virtual void
+  handle_completion_req(const std::string &input_prompt, ServerSlot *slot,
+                        common_params_sampling sparams,
+                        ServerSlot::GenerateResponseCallback callback,
+                        std::vector<std::string> stop, bool reset);
+
+  /**
+   * @brief Handles a chat completion request.
+   *
+   * Prepares the given slot for generating a chat completion using the
+   * provided chat context, which includes messages, templates, and
+   * sampling parameters.
+   *
+   * @param chat_context The chat completions context with messages and config.
+   * @param slot The server slot to use for processing.
+   * @param callback Callback invoked for each generated token (streaming).
+   */
+  virtual void
+  handle_chat_completion_req(llama_utils::ChatCompletionsContext chat_context,
+                             ServerSlot *slot,
+                             ServerSlot::GenerateResponseCallback callback);
+
+  /**
+   * @brief Truncates a token sequence to a maximum size.
+   *
+   * If the token sequence exceeds the limit, it is truncated and
+   * optionally an end-of-sequence token is appended.
+   *
+   * @param tokens The input token sequence.
+   * @param limit_size The maximum number of tokens allowed.
+   * @param add_eos Whether to append an EOS token after truncation.
+   * @return The truncated token sequence.
+   */
+  std::vector<llama_token>
+  truncate_tokens(const std::vector<llama_token> &tokens, int limit_size,
+                  bool add_eos = true);
 
   /**
    * @brief Ranks the relevance of multiple documents to a given query.
    *
    * @param query The query string.
    * @param documents A vector of document strings to rank.
-   * @return A vector of floating-point scores representing the relevance of
-   * each document.
+   * @return A Result containing relevance scores, or an error message.
    */
-  std::vector<float> rank_documents(const std::string &query,
-                                    const std::vector<std::string> &documents);
+  Result<std::vector<llama_ros::ServerTaskResultRerank>>
+  rank_documents(const std::string &query,
+                 const std::vector<std::string> &documents);
 
   /**
    * @brief Generates a response based on the input prompt and sampling
@@ -589,41 +282,43 @@ public:
    *
    * @param input_prompt The input text prompt for generating the response.
    * @param sparams The sampling parameters to guide the response generation.
-   * @param callbakc (Optional) A callback function to handle the generated
+   * @param callback (Optional) A callback function to handle the generated
    * response.
    * @param stop (Optional) A list of stop words or phrases to terminate the
    * response generation.
-   * @return A structure containing the generated response and its metadata.
+   * @return A Result containing the generated response and metadata, or an
+   * error.
    */
-  struct ResponseOutput
-  generate_response(const std::string &input_prompt,
-                    struct common_params_sampling sparams,
-                    GenerateResponseCallback callbakc = nullptr,
-                    std::vector<std::string> stop = {});
+  Result<ServerTaskResultCompletion>
+  generate_response(int slot_id, const std::string &input_prompt,
+                    common_params_sampling sparams,
+                    ServerSlot::GenerateResponseCallback callback = nullptr,
+                    std::vector<std::string> stop = {}, bool reset = true);
 
   /**
-   * @brief Generates a response based on the input prompt.
+   * @brief Generates a chat completion response.
    *
-   * @param input_prompt The input text prompt for generating the response.
-   * @param callbakc (Optional) A callback function to handle the generated
-   * response.
-   * @param stop (Optional) A list of stop words or phrases to terminate the
-   * response generation.
-   * @return A structure containing the generated response and its metadata.
+   * Submits a chat completion task to the server and waits for the result.
+   * The chat context includes messages, templates, and sampling parameters.
+   *
+   * @param slot_gid The goal ID to assign to the slot.
+   * @param chat_context The chat completions context with messages and config.
+   * @param callback (Optional) Callback for streaming partial results.
+   * @return A Result containing the completion response and metadata, or an
+   *         error.
    */
-  struct ResponseOutput
-  generate_response(const std::string &input_prompt,
-                    GenerateResponseCallback callbakc = nullptr,
-                    std::vector<std::string> stop = {});
+  Result<ServerTaskResultCompletion> generate_chat_response(
+      int slot_gid, llama_utils::ChatCompletionsContext chat_context,
+      ServerSlot::GenerateResponseCallback callback = nullptr);
 
   /**
-   * @brief Retrieves the chat templates used for generating responses.
+   * @brief Gets the chat formatter utility.
    *
-   * @return A unique pointer to the chat templates structure.
+   * @return Pointer to the chat formatter.
    */
-  struct std::unique_ptr<struct common_chat_templates,
-                         common_chat_templates_deleter>
-  get_chat_templates();
+  llama_utils::ChatFormatter *get_chat_formatter() {
+    return this->chat_formatter_.get();
+  }
 
   /**
    * @brief Retrieves the chat parameters based on the provided templates and
@@ -633,30 +328,29 @@ public:
    * @param inputs The inputs for the chat templates.
    * @return A structure containing the chat parameters.
    */
-  struct common_chat_params
-  get_chat_params(struct common_chat_templates *tmpls,
-                  struct common_chat_templates_inputs inputs);
+  common_chat_params get_chat_params(common_chat_templates *tmpls,
+                                     common_chat_templates_inputs inputs);
 
   /**
    * @brief Retrieves performance context data for the model.
    *
    * @return A structure containing performance context data.
    */
-  struct llama_perf_context_data get_perf_data();
+  llama_perf_context_data get_perf_data();
 
   /**
    * @brief Retrieves the internal llama context.
    *
    * @return A pointer to the llama context structure.
    */
-  const struct llama_context *get_ctx() { return this->ctx; }
+  const llama_context *get_ctx() { return this->ctx; }
 
   /**
    * @brief Retrieves the internal llama model.
    *
    * @return A pointer to the llama model structure.
    */
-  const struct llama_model *get_model() { return this->model; }
+  const llama_model *get_model() { return this->model; }
 
   /**
    * @brief Retrieves the internal llama memory.
@@ -670,9 +364,7 @@ public:
    *
    * @return A pointer to the llama vocabulary structure.
    */
-  const struct llama_vocab *get_vocab() {
-    return llama_model_get_vocab(this->model);
-  }
+  const llama_vocab *get_vocab() { return llama_model_get_vocab(this->model); }
 
   /**
    * @brief Retrieves the context size of the model.
@@ -769,7 +461,7 @@ public:
    *
    * @return A structure containing all metadata information.
    */
-  struct Metadata get_metadata();
+  Metadata get_metadata();
 
   /**
    * @brief Checks if the model is in embedding mode.
@@ -799,9 +491,9 @@ public:
    *
    * @return True if the end-of-generation is reached, false otherwise.
    */
-  bool is_eog() {
+  bool is_eog(ServerSlot *slot) {
     return llama_vocab_is_eog(this->get_vocab(),
-                              common_sampler_last(this->sampler));
+                              common_sampler_last(slot->sampler));
   }
 
   /**
@@ -826,72 +518,58 @@ public:
   llama_token get_token_sep() { return llama_vocab_sep(this->get_vocab()); }
 
   /**
-   * @brief Updates the chat message based on the specified stop condition and
-   * syntax.
+   * @brief Attempts to get an available (idle) slot without blocking.
    *
-   * This method returns a constant reference to the completed chat message.
-   * It updates the oaicompat_msg_diffs with the changes made to the chat
-   * message while streaming the response.
+   * @return Pointer to an available slot, or nullptr if none available.
+   */
+  ServerSlot *get_available_slot();
+
+  /**
+   * @brief Waits for an available slot to become free.
    *
-   * @param stop The stop condition to apply when updating the chat message.
-   * @param syntax The syntax rules to use for updating the chat message.
-   * @return A constant reference to the completed chat message.
+   * Blocks the calling thread until a slot becomes available.
+   *
+   * @return Pointer to the newly available slot.
    */
-  const common_chat_msg &update_chat_msg(enum StopType stop);
+  ServerSlot *wait_for_available_slot();
 
   /**
-   * @brief The generated text from the model while streaming the response.
-   * @note slot
+   * @brief Retrieves a slot by its numeric ID.
+   *
+   * @param id The slot ID.
+   * @return Pointer to the slot, or nullptr if not found.
    */
-  std::string generated_text;
+  ServerSlot *get_slot_by_id(int id);
 
   /**
-   * @brief Message diffs when streaming the response.
-   * @note slot
+   * @brief Retrieves a slot by its associated goal ID.
+   *
+   * @param gid The goal ID.
+   * @return Pointer to the slot, or nullptr if not found.
    */
-  std::vector<common_chat_msg_diff> oaicompat_msg_diffs;
-
-  /**
-   * @brief The chat syntax used for generating responses.
-   * @note slot
-   */
-  common_chat_syntax oaicompat_chat_syntax;
-
-  /**
-   * @brief The previous performance context data for usage statistics. It is
-   * used while streaming.
-   */
-  llama_perf_context_data prev_stat_usage;
+  ServerSlot *get_slot_by_gid(uint64_t gid);
 
 protected:
-  /**
-   * @brief Common parameters for the model.
-   *
-   * This structure contains configuration parameters used to initialize and
-   * manage the model.
-   */
-  struct common_params params;
-
   /**
    * @brief Initialization result for the model.
    *
    * This structure holds the result of the model initialization process.
    */
-  struct common_init_result llama_init;
+  std::unique_ptr<common_init_result> llama_init;
 
   /**
    * @brief Pointer to the llama context.
    *
    * This context is used for managing the state and operations of the model.
    */
-  struct llama_context *ctx;
+  llama_context *ctx;
 
   /**
    * @brief Pointer to the llama model.
    *
    * This represents the loaded model used for inference and other operations.
    */
-  struct llama_model *model;
+  llama_model *model;
 
   /**
    * @brief List of LoRA (Low-Rank Adaptation) adapters.
@@ -905,14 +583,17 @@ protected:
    *
    * The sampler is responsible for selecting tokens during generation.
    */
-  struct common_sampler *sampler;
+  common_sampler *sampler;
+
+  /// @brief The batch used for batched token decoding.
+  llama_batch batch;
 
   /**
    * @brief Pointer to the thread pool for parallel processing.
    *
    * This thread pool is used for managing tasks during model execution.
    */
-  struct ggml_threadpool *threadpool;
+  ggml_threadpool *threadpool;
 
   /**
    * @brief Pointer to the thread pool for batch processing.
@@ -920,7 +601,7 @@ protected:
    * This thread pool is used for managing batch operations during model
    * execution.
    */
-  struct ggml_threadpool *threadpool_batch;
+  ggml_threadpool *threadpool_batch;
 
   /**
    * @brief The system prompt used for initializing the model's context.
@@ -944,13 +625,6 @@ protected:
   llama_utils::Spinner spinner;
 
   /**
-   * @brief Tokens representing the input prompt.
-   *
-   * This vector contains the tokenized representation of the input prompt.
-   */
-  std::vector<llama_token> prompt_tokens;
-
-  /**
    * @brief Number of past tokens processed by the model.
    *
    * This value is used to manage the model's context window.
@@ -971,140 +645,146 @@ protected:
    */
   int32_t ga_i;
 
-  /**
-   * @brief Checks if the prompt contains the prefix at the end.
-   *
-   * @return True if the prompt contains the prefix, false otherwise.
-   */
-  bool check_if_prefix();
+  /// @brief The collection of server slots for concurrent request processing.
+  std::vector<ServerSlot> server_slots;
+
+  /// @brief Manages allocation and lifecycle of server slots.
+  std::unique_ptr<SlotManager> slot_manager_;
+
+  /// @brief Manages asynchronous task registration and completion.
+  std::unique_ptr<TaskRegistry> task_registry_;
+
+  /// @brief Handles chat template formatting and response parsing.
+  std::unique_ptr<llama_utils::ChatFormatter> chat_formatter_;
+
+  /// @brief Handler for embedding generation requests.
+  std::unique_ptr<EmbeddingRequestHandler> embedding_handler_;
+
+  /// @brief Handler for document reranking requests.
+  std::unique_ptr<RerankRequestHandler> rerank_handler_;
+
+  /// @brief Handler for text completion requests.
+  std::unique_ptr<CompletionRequestHandler> completion_handler_;
+
+  /// @brief Handler for chat completion requests.
+  std::unique_ptr<ChatCompletionRequestHandler> chat_completion_handler_;
 
   /**
-   * @brief Load the prefix to the propmt.
+   * @brief Releases a slot back to the pool.
+   *
+   * Resets the slot state and notifies the slot manager that it is
+   * available for reuse.
+   *
+   * @param slot Pointer to the slot to release.
    */
-  void load_prefix();
+  void release_slot(ServerSlot *slot);
 
   /**
-   * @brief Load the suffix to the propmt.
+   * @brief Registers a pending task and returns a future for the result.
+   *
+   * @param goal_id The unique identifier for the task.
+   * @return A future that will contain the task result when fulfilled.
    */
-  void load_suffix();
+  std::future<ServerTaskResultPtr> register_pending(uint64_t goal_id);
 
   /**
-   * @brief Loads a prompt into the model.
+   * @brief Fulfills a pending task with a successful result.
    *
-   * @param input_prompt The input text prompt to load.
-   * @param add_pfx Whether to add a prefix to the prompt.
-   * @param add_sfx Whether to add a suffix to the prompt.
+   * @param goal_id The unique identifier for the task.
+   * @param r The result to deliver to the waiting future.
    */
-  virtual void load_prompt(const std::string &input_prompt, bool add_pfx,
-                           bool add_sfx);
+  void fulfill_pending(uint64_t goal_id, ServerTaskResultPtr r);
 
   /**
-   * @brief Finds a stopping condition based on the completion results and
-   * stopping words.
+   * @brief Fails a pending task with an error message.
    *
-   * @param completion_result_list A list of completion results to evaluate.
-   * @param stopping_words A list of words or phrases that indicate stopping
-   * conditions.
-   * @return The type of stopping condition encountered.
+   * @param goal_id The unique identifier for the task.
+   * @param err The error description.
    */
-  StopType
-  find_stop(std::vector<struct CompletionOutput> completion_result_list,
-            std::vector<std::string> stopping_words);
+  void fail_pending(uint64_t goal_id, std::string err);
 
   /**
-   * @brief Finds a stopping condition based on a specific stopping word.
+   * @brief Sends the embedding result for a completed slot.
    *
-   * @param completion_result_list A list of completion results to evaluate.
-   * @param stopping_word A specific word or phrase that indicates a stopping
-   * condition.
-   * @return The type of stopping condition encountered.
+   * Extracts the embeddings from the decoded batch and fulfills the
+   * pending task associated with the slot.
+   *
+   * @param slot The slot that produced the embeddings.
+   * @param batch The batch containing the decoded output.
    */
-  StopType
-  find_stop_word(std::vector<struct CompletionOutput> completion_result_list,
-                 std::string stopping_word);
+  void send_embedding_result(ServerSlot *slot, const llama_batch &batch);
 
   /**
-   * @brief Evaluates the system prompt.
+   * @brief Sends the rerank result for a completed slot.
    *
-   * @return True if the system prompt evaluation is successful, false
-   * otherwise.
+   * Extracts the relevance score from the decoded batch and fulfills
+   * the pending task associated with the slot.
+   *
+   * @param slot The slot that produced the rerank score.
+   * @param batch The batch containing the decoded output.
    */
-  bool eval_system_prompt();
+  void send_rerank_result(ServerSlot *slot, const llama_batch &batch);
 
   /**
-   * @brief Evaluates the input prompt.
+   * @brief Sends the completion result for a finished generation slot.
    *
-   * This method is virtual and can be overridden by derived classes.
+   * Gathers all generated tokens, text, and probabilities from the slot
+   * and fulfills the pending task.
    *
-   * @return True if the prompt evaluation is successful, false otherwise.
+   * @param slot The slot that produced the completion.
    */
-  virtual bool eval_prompt();
-
-  /**
-   * @brief Evaluates a vector of prompt tokens.
-   *
-   * @param prompt_tokens The vector of tokens to evaluate.
-   * @return True if the token evaluation is successful, false otherwise.
-   */
-  bool eval_prompt(std::vector<llama_token> prompt_tokens);
-
-  /**
-   * @brief Evaluates a single token.
-   *
-   * @param token The token to evaluate.
-   * @return True if the token evaluation is successful, false otherwise.
-   */
-  bool eval_token(llama_token token);
-
-  /**
-   * @brief Evaluates a vector of tokens.
-   *
-   * @param tokens The vector of tokens to evaluate.
-   * @return True if the token evaluation is successful, false otherwise.
-   */
-  bool eval(std::vector<llama_token> tokens);
-
-  /**
-   * @brief Evaluates a batch of tokens.
-   *
-   * This method is virtual and can be overridden by derived classes.
-   *
-   * @param batch The batch of tokens to evaluate.
-   * @return True if the batch evaluation is successful, false otherwise.
-   */
-  virtual bool eval(struct llama_batch batch);
+  void send_completion_result(ServerSlot *slot);
 
   /**
    * @brief Retrieves the probabilities of the next tokens.
    *
    * @return A vector of token probabilities.
    */
-  std::vector<struct TokenProb> get_probs();
+  std::vector<TokenProb> get_probs(ServerSlot *slot);
 
   /**
-   * @brief Samples a token based on the current probabilities.
+   * @brief Convert raw token probabilities to SelectedLogProb format.
    *
-   * @return A structure containing the sampled token and its metadata.
+   * @param slot The slot containing generated tokens and probabilities.
+   * @return Vector of SelectedLogProb with chosen token and alternatives.
    */
-  struct CompletionOutput sample();
+  std::vector<SelectedLogProb> convert_probs_to_logprobs(ServerSlot *slot);
 
-private:
-  /**
-   * @brief A mutex for thread-safe operations.
-   */
-  std::recursive_mutex mutex;
+  /// @brief Options for the OpenAI-compatible response parser.
+  OAICompactParserOptions oai_parser_opt;
 
-  /**
-   * @brief The last generated chat message while streaming the response.
-   * @note slot
-   */
-  common_chat_msg chat_msg;
+  /// @brief Speculative decoding context (nullptr if disabled).
+  common_speculative *speculative_ = nullptr;
+
+  /// @brief Draft model for speculative decoding (nullptr if disabled).
+  llama_model *model_dft_ = nullptr;
 
   /**
-   * @brief A list of generated tool call IDs while streaming the response.
-   * @note slot
+   * @brief Checks whether speculative decoding is enabled.
+   *
+   * @return True if speculative decoding is active, false otherwise.
    */
-  std::vector<std::string> generated_tool_call_ids;
+  bool is_speculative() const { return this->speculative_ != nullptr; }
+
+  /**
+   * @brief Initializes the speculative decoding system.
+   *
+   * Loads the draft model (if configured), creates the speculative decoder,
+   * and validates compatibility with the target model.
+   */
+  void init_speculative();
+
+  /**
+   * @brief Runs a single speculative-decoding generation step for a slot.
+   *
+   * Generates draft tokens, evaluates them in a batch on the target model,
+   * verifies with common_sampler_sample_and_accept_n, and processes the
+   * accepted tokens.
+   *
+   * @param slot The server slot in GENERATING state.
+   * @return True if more tokens should be generated, false if done.
+   */
+  bool speculative_generation_step(ServerSlot *slot);
 };
 
 } // namespace llama_ros

@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 3.8)
 project(llama_ros)
 
+SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
@@ -16,6 +19,7 @@ find_package(Threads REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(llama_hfhub_vendor REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 include_directories(
   include
@@ -31,12 +35,26 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCV_BRIDGE_HPP")
 endif()
 
-# llama nodes
-add_executable(llama_node
+# Common source files
+set(LLAMA_CORE_SOURCES
   src/llama_ros/llama.cpp
+  src/llama_ros/server_slot.cpp
+  src/llama_ros/slot_manager.cpp
+  src/llama_ros/task_registry.cpp
+  src/llama_ros/request_handler.cpp
+)
+
+set(LLAMA_UTILS_SOURCES
   src/llama_utils/logs.cpp
   src/llama_utils/chat_utils.cpp
+  src/llama_utils/chat_formatter.cpp
   src/llama_utils/llama_params.cpp
+)
+
+# llama nodes
+add_executable(llama_node
+  ${LLAMA_CORE_SOURCES}
+  ${LLAMA_UTILS_SOURCES}
   src/llama_ros/llama_node.cpp
   src/llama_main.cpp
 )
@@ -44,23 +62,24 @@ target_link_libraries(llama_node
   llama_cpp_vendor::llama
   llama_cpp_vendor::common
   ${CMAKE_THREAD_LIBS_INIT}
+  ament_index_cpp::ament_index_cpp
   rclcpp::rclcpp
   rclcpp_action::rclcpp_action
   rclcpp_lifecycle::rclcpp_lifecycle
   ${llama_msgs_TARGETS}
   ${llama_cpp_vendor_TARGETS}
   ${llama_hfhub_vendor_TARGETS}
+  yaml-cpp
   Threads::Threads
 )
 
 add_executable(llava_node
-  src/llama_ros/llama.cpp
+  ${LLAMA_CORE_SOURCES}
+  ${LLAMA_UTILS_SOURCES}
   src/llava_ros/llava.cpp
-  src/llama_utils/logs.cpp
-  src/llama_utils/chat_utils.cpp
-  src/llama_utils/llama_params.cpp
   src/llama_ros/llama_node.cpp
   src/llava_ros/llava_node.cpp
+  src/llava_ros/llava_request_handler.cpp
   src/llava_main.cpp
 )
 target_link_libraries(llava_node
@@ -69,12 +88,14 @@ target_link_libraries(llava_node
   llama_cpp_vendor::mtmd
   llama_cpp_vendor::common
   ${CMAKE_THREAD_LIBS_INIT}
+  ament_index_cpp::ament_index_cpp
   rclcpp::rclcpp
   rclcpp_action::rclcpp_action
   rclcpp_lifecycle::rclcpp_lifecycle
   ${llama_msgs_TARGETS}
   ${llama_cpp_vendor_TARGETS}
   ${llama_hfhub_vendor_TARGETS}
+  yaml-cpp
   Threads::Threads
 )
 
@@ -92,6 +113,7 @@ install(TARGETS
 )
 
 install(DIRECTORY
+  prompts
   DESTINATION share/${PROJECT_NAME}
 )
 
@@ -99,6 +121,42 @@ install(DIRECTORY
 if(BUILD_TESTING)
   find_package(ament_cmake_clang_format REQUIRED)
   ament_clang_format(CONFIG_FILE .clang-format)
+  
+  find_package(ament_cmake_gtest REQUIRED)
+  
+  # Test executable
+  ament_add_gtest(${PROJECT_NAME}_tests
+    test/test_main.cpp
+    test/test_llama_params.cpp
+    test/test_llama_deployment.cpp
+    test/test_llama_generation.cpp
+    test/test_llama_lora.cpp
+    test/test_llama_embeddings.cpp
+    test/test_llama_rerank.cpp
+    ${LLAMA_CORE_SOURCES}
+    ${LLAMA_UTILS_SOURCES}
+    TIMEOUT 600
+  )
+  
+  target_include_directories(${PROJECT_NAME}_tests PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    ${OpenCV_INCLUDE_DIRS}
+  )
+  
+  target_link_libraries(${PROJECT_NAME}_tests
+    llama_cpp_vendor::llama
+    llama_cpp_vendor::common
+    ${CMAKE_THREAD_LIBS_INIT}
+    ament_index_cpp::ament_index_cpp
+    rclcpp::rclcpp
+    rclcpp_lifecycle::rclcpp_lifecycle
+    ${llama_msgs_TARGETS}
+    ${llama_cpp_vendor_TARGETS}
+    ${llama_hfhub_vendor_TARGETS}
+    yaml-cpp
+    Threads::Threads
+  )
 endif()
 
 ament_python_install_package(${PROJECT_NAME})
