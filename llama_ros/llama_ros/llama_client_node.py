@@ -270,6 +270,14 @@ class LlamaClientNode(Node):
 
         with self._goal_handle_lock:
             self._goal_handle = future.result()
+            if not self._goal_handle.accepted:
+                self.get_logger().error("Goal was REJECTED by the action server.")
+                self._goal_handle = None
+                with self._action_done_cond:
+                    self._action_done = True
+                    self._action_done_cond.notify_all()
+                return
+            self.get_logger().debug("Goal accepted by action server.")
             get_result_future = self._goal_handle.get_result_async()
             get_result_future.add_done_callback(self._get_result_callback)
 
@@ -277,6 +285,27 @@ class LlamaClientNode(Node):
 
         self._action_result: GenerateResponse.Result = future.result().result
         self._action_status = future.result().status
+
+        _STATUS_NAMES = {
+            GoalStatus.STATUS_UNKNOWN: "UNKNOWN",
+            GoalStatus.STATUS_ACCEPTED: "ACCEPTED",
+            GoalStatus.STATUS_EXECUTING: "EXECUTING",
+            GoalStatus.STATUS_CANCELING: "CANCELING",
+            GoalStatus.STATUS_SUCCEEDED: "SUCCEEDED",
+            GoalStatus.STATUS_CANCELED: "CANCELED",
+            GoalStatus.STATUS_ABORTED: "ABORTED",
+        }
+        status_name = _STATUS_NAMES.get(
+            self._action_status, f"UNKNOWN({self._action_status})"
+        )
+        if self._action_status != GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().error(
+                f"Action finished with non-success status: {status_name} "
+                f"(code={self._action_status}). "
+                "Check llama_node logs for the RCLCPP_ERROR above this."
+            )
+        else:
+            self.get_logger().debug(f"Action finished with status: {status_name}")
 
         with self._action_done_cond:
             self._action_done = True

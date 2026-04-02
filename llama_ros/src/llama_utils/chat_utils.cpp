@@ -11,7 +11,7 @@
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,10 +20,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "llama_utils/chat_utils.hpp"
-#include "llama_ros/llama.hpp"
 #include <common.h>
+
 #include <cstddef>
+#include <mutex>
+#include <regex>
+
+#include "llama_ros/llama.hpp"
+#include "llama_utils/chat_utils.hpp"
+#include "llama_utils/llama_params.hpp"
+
+#include <llama_msgs/action/generate_response.hpp>
 #include <llama_msgs/msg/detail/chat_req_tool__struct.hpp>
 
 common_chat_tool_choice llama_utils::parse_chat_tool_choice(int type) {
@@ -52,22 +59,22 @@ llama_utils::parse_reasoning_format(const int reasoning_format) {
   }
 }
 
-struct common_chat_templates_inputs llama_utils::parse_chat_completions_goal(
+common_chat_templates_inputs llama_utils::parse_chat_completions_goal(
     const std::shared_ptr<
         const llama_msgs::action::GenerateChatCompletions::Goal>
         goal) {
 
-  struct common_chat_templates_inputs inputs;
+  common_chat_templates_inputs inputs;
 
   std::vector<common_chat_msg> messages;
   for (auto message : goal->messages) {
-    struct common_chat_msg msg;
+    common_chat_msg msg;
     msg.role = message.role;
     msg.content = message.content;
     std::vector<common_chat_msg_content_part> content_parts;
 
     for (auto content_part : message.content_parts) {
-      struct common_chat_msg_content_part part;
+      common_chat_msg_content_part part;
       part.type = content_part.type;
       part.text = content_part.text;
       content_parts.push_back(part);
@@ -76,7 +83,7 @@ struct common_chat_templates_inputs llama_utils::parse_chat_completions_goal(
 
     std::vector<common_chat_tool_call> tool_calls;
     for (auto tool_call : message.tool_calls) {
-      struct common_chat_tool_call call;
+      common_chat_tool_call call;
       call.name = tool_call.name;
       call.arguments = tool_call.arguments;
       call.id = tool_call.id;
@@ -89,7 +96,7 @@ struct common_chat_templates_inputs llama_utils::parse_chat_completions_goal(
 
   std::vector<common_chat_tool> tools;
   for (auto tool : goal->tools) {
-    struct common_chat_tool t;
+    common_chat_tool t;
     t.name = tool.function.name;
     t.description = tool.function.description;
     t.parameters = tool.function.parameters;
@@ -104,19 +111,21 @@ struct common_chat_templates_inputs llama_utils::parse_chat_completions_goal(
   inputs.use_jinja = goal->use_jinja;
   inputs.tool_choice = llama_utils::parse_chat_tool_choice(goal->tool_choice);
   inputs.parallel_tool_calls = goal->parallel_tool_calls;
+  inputs.reasoning_format =
+      llama_utils::parse_reasoning_format(goal->reasoning_format.value);
   inputs.enable_thinking =
-      goal->reasoning_format.value !=
-      llama_msgs::msg::ChatReasoningFormat::COMMON_REASONING_FORMAT_NONE;
+      inputs.reasoning_format != COMMON_REASONING_FORMAT_NONE;
 
   return inputs;
 }
 
 llama_msgs::action::GenerateChatCompletions::Result
-llama_utils::generate_chat_completions_result(const ResponseResult &result) {
+llama_utils::generate_chat_completions_result(
+    const llama_ros::ServerTaskResultCompletion &result) {
   llama_msgs::msg::ChatMessage chat_msg;
   std::string finish_reason = "stop";
 
-  common_chat_msg msg = result.chat_msg;
+  common_chat_msg msg = result.oaicompat_msg;
 
   if (msg.tool_calls.size() > 0) {
     finish_reason = "tool_calls";
@@ -130,6 +139,7 @@ llama_utils::generate_chat_completions_result(const ResponseResult &result) {
   if (!msg.content.empty() || msg.tool_calls.empty()) {
     chat_msg.content = msg.content;
   }
+
   if (!msg.tool_calls.empty()) {
     std::vector<llama_msgs::msg::ChatToolCall> tool_calls;
     for (size_t i = 0; i < msg.tool_calls.size(); ++i) {
@@ -183,7 +193,9 @@ llama_utils::generate_chat_completions_result(const ResponseResult &result) {
 
 std::vector<llama_msgs::action::GenerateChatCompletions::Feedback>
 llama_utils::generate_chat_completions_feedback(
-    const ResponseResult &result, std::vector<common_chat_msg_diff> deltas) {
+    const llama_ros::ServerTaskResultCompletionPartial &result,
+    std::vector<common_chat_msg_diff> deltas,
+    std::vector<llama_msgs::msg::TokenProb> probs) {
   bool first = result.n_decoded == 0;
 
   std::vector<llama_msgs::action::GenerateChatCompletions::Feedback> feedbacks;
@@ -240,6 +252,21 @@ llama_utils::generate_chat_completions_feedback(
       choice.delta.tool_calls.push_back(tool_call);
     }
 
+    // Add logprobs to the streaming feedback if available
+    if (!probs.empty()) {
+      llama_msgs::msg::TokenProbArray logprobs_msg;
+      logprobs_msg.chosen_token = probs[0].token;
+      for (const auto &prob : probs) {
+        llama_msgs::msg::TokenProb aux;
+        aux.token = prob.token;
+        // Convert probability to log probability
+        aux.probability = std::log(prob.probability);
+        aux.token_text = prob.token_text;
+        logprobs_msg.data.push_back(aux);
+      }
+      choice.logprobs = logprobs_msg;
+    }
+
     feedback.choices.push_back(choice);
     feedbacks.push_back(feedback);
   }
@@ -254,10 +281,10 @@ llama_utils::ChatCompletionsContext llama_utils::prepare_chat_completions_call(
   llama_utils::ChatCompletionsContext ctx;
 
   // Get model chat template
-  auto tmpls = llama->get_chat_templates();
+  auto tmpls = llama->get_chat_formatter();
   ctx.prompt_format_config = llama_utils::parse_chat_completions_goal(goal);
   ctx.chat_prompt_instance =
-      llama->get_chat_params(tmpls.get(), ctx.prompt_format_config);
+      llama->get_chat_params(tmpls->get_templates(), ctx.prompt_format_config);
   ctx.sparams = llama_utils::parse_sampling_params(goal->sampling_config,
                                                    llama->get_n_vocab());
 
@@ -265,7 +292,7 @@ llama_utils::ChatCompletionsContext llama_utils::prepare_chat_completions_call(
   ctx.oaicompat_chat_syntax.reasoning_format =
       llama_utils::parse_reasoning_format(goal->reasoning_format.value);
   ctx.oaicompat_chat_syntax.reasoning_in_content =
-      goal->stream && ctx.oaicompat_chat_syntax.reasoning_format !=
+      goal->stream && ctx.oaicompat_chat_syntax.reasoning_format ==
                           COMMON_REASONING_FORMAT_DEEPSEEK_LEGACY;
   ctx.oaicompat_chat_syntax.thinking_forced_open =
       ctx.chat_prompt_instance.thinking_forced_open;
@@ -273,14 +300,222 @@ llama_utils::ChatCompletionsContext llama_utils::prepare_chat_completions_call(
       !goal->tools.empty() &&
       ctx.prompt_format_config.tool_choice != COMMON_CHAT_TOOL_CHOICE_NONE;
 
+  // Load the PEG parser from the chat template so that common_chat_parse
+  // can properly extract tool calls and structured output from the response.
+  if (!ctx.chat_prompt_instance.parser.empty()) {
+    ctx.oaicompat_chat_syntax.parser.load(ctx.chat_prompt_instance.parser);
+  }
+
+  // Add preserved tokens to the sampling config.
+  // These are special tokens required by the chat template parser
+  // (e.g. <tool_call>, </tool_call>) that must be tokenized as single tokens.
+  if (llama) {
+    const llama_vocab *vocab = llama->get_vocab();
+    for (const auto &token_str : ctx.chat_prompt_instance.preserved_tokens) {
+      auto ids = common_tokenize(vocab, token_str,
+                                 /* add_special= */ false,
+                                 /* parse_special= */ true);
+      if (ids.size() == 1) {
+        ctx.sparams.preserved_tokens.insert(ids[0]);
+      }
+    }
+  }
+
   if (goal->sampling_config.grammar.empty() && goal->tools.size() != 0) {
     ctx.sparams.grammar = ctx.chat_prompt_instance.grammar;
+
+    // Workaround for llama.cpp autoparser bug (b8261): when a template uses
+    // per-call wrapping tags (e.g. <tool_call>...</tool_call> for each call,
+    // as in Qwen3) but the JSON inside uses standard format, the autoparser
+    // detects it as JSON_NATIVE and puts ALL calls inside a SINGLE tag pair
+    // with comma separation. This is wrong — the model expects each call in
+    // its own tag pair. Fix the grammar when parallel_tool_calls is true by
+    // rewriting the tool-call rule so each call gets its own wrapper.
+    if (ctx.prompt_format_config.parallel_tool_calls &&
+        !ctx.sparams.grammar.empty()) {
+      // Look for the tool-call rule that has comma-separated repetition
+      // inside a single pair of XML-like tags. Pattern in the grammar:
+      //   tool-call ::= "OPEN" space CHOICES (space "," space CHOICES)* space
+      //   "CLOSE"
+      // We rewrite to:
+      //   tool-call ::= "OPEN" space CHOICES space "CLOSE" (space "OPEN" space
+      //   CHOICES space "CLOSE")*
+      std::string &grammar = ctx.sparams.grammar;
+
+      // Find the tool-call rule
+      std::string rule_marker = "tool-call ::= ";
+      auto rule_pos = grammar.find(rule_marker);
+      if (rule_pos != std::string::npos) {
+        // Find the end of this rule (next rule or end of string)
+        auto rule_start = rule_pos + rule_marker.size();
+        auto next_rule = grammar.find('\n', rule_start);
+        if (next_rule == std::string::npos)
+          next_rule = grammar.size();
+
+        std::string rule_body =
+            grammar.substr(rule_start, next_rule - rule_start);
+
+        // Check if this rule has the comma-separated pattern inside XML tags.
+        // Look for: (space "," space CHOICES)*
+        auto comma_pat_pos = rule_body.find("(space \",\" space ");
+        // Also check for opening XML tag pattern: starts with "< ...
+        bool has_xml_open =
+            rule_body.size() > 1 && rule_body[0] == '"' && rule_body[1] == '<';
+
+        if (comma_pat_pos != std::string::npos && has_xml_open) {
+          // Extract the opening tag: everything from start to first " space "
+          // e.g. "<tool_call>\n" space
+          // Find the first occurrence of '" space' after the opening quote
+          auto space_after_open = rule_body.find("\" space ");
+          if (space_after_open != std::string::npos) {
+            // Opening tag includes up to and including ' space '
+            std::string open_tag =
+                rule_body.substr(0, space_after_open + 8); // +8 for `" space `
+
+            // Extract the choices group between open_tag and comma pattern
+            std::string choices = rule_body.substr(
+                open_tag.size(), comma_pat_pos - open_tag.size());
+            // Trim trailing whitespace from choices
+            while (!choices.empty() &&
+                   (choices.back() == ' ' || choices.back() == '\t'))
+              choices.pop_back();
+
+            // Extract closing tag: after the comma-repetition pattern
+            // The pattern ends with ")* space CLOSE"
+            // Find ")* " after comma_pat_pos
+            auto rep_end = rule_body.find(")*", comma_pat_pos);
+            if (rep_end != std::string::npos) {
+              std::string close_tag =
+                  rule_body.substr(rep_end + 2); // after ")*"
+              // Trim leading whitespace
+              while (!close_tag.empty() &&
+                     (close_tag.front() == ' ' || close_tag.front() == '\t'))
+                close_tag.erase(close_tag.begin());
+
+              // Build the corrected rule:
+              // tool-call ::= OPEN CHOICES CLOSE (space OPEN CHOICES CLOSE)*
+              std::string one_call = open_tag + choices + " " + close_tag;
+              std::string fixed_rule = one_call + " (space " + one_call + ")*";
+
+              grammar.replace(rule_start, next_rule - rule_start, fixed_rule);
+            }
+          }
+        }
+      }
+    }
   }
+
   if (goal->sampling_config.grammar_triggers.empty()) {
-    ctx.sparams.grammar_triggers = ctx.chat_prompt_instance.grammar_triggers;
+    // Resolve WORD triggers to TOKEN triggers when possible,
+    // matching the llama.cpp server behavior.
+    for (auto trigger : ctx.chat_prompt_instance.grammar_triggers) {
+      if (trigger.type == COMMON_GRAMMAR_TRIGGER_TYPE_WORD && llama) {
+        const llama_vocab *vocab = llama->get_vocab();
+        auto ids = common_tokenize(vocab, trigger.value,
+                                   /* add_special= */ false,
+                                   /* parse_special= */ true);
+        if (ids.size() == 1) {
+          trigger.type = COMMON_GRAMMAR_TRIGGER_TYPE_TOKEN;
+          trigger.token = ids[0];
+        }
+      }
+      ctx.sparams.grammar_triggers.push_back(trigger);
+    }
   }
+
   ctx.sparams.grammar_lazy = ctx.chat_prompt_instance.grammar_lazy ||
                              goal->sampling_config.grammar_lazy;
 
   return ctx;
+}
+
+llama_utils::CompletionContext llama_utils::prepare_completion_call(
+    const std::shared_ptr<const llama_msgs::action::GenerateResponse::Goal>
+        &goal,
+    llama_ros::Llama *llama) {
+  llama_utils::CompletionContext ctx;
+
+  ctx.prompt = goal->prompt;
+  ctx.stop = goal->stop;
+  ctx.reset = goal->reset;
+
+  // Apply EOG logit biases to sampling configuration
+  llama_msgs::msg::SamplingConfig sampling_config = goal->sampling_config;
+
+  if (llama && llama->get_vocab() && llama->get_ctx()) {
+    llama_utils::apply_eog_logit_biases(sampling_config, llama->get_vocab(),
+                                        llama->get_ctx());
+  }
+
+  ctx.sparams = llama_utils::parse_sampling_params(
+      sampling_config, llama ? llama->get_n_vocab() : 0);
+
+  return ctx;
+}
+
+llama_msgs::action::GenerateResponse::Result
+llama_utils::generate_completion_result(
+    const llama_ros::ServerTaskResultCompletion &result,
+    llama_ros::Llama *llama) {
+  llama_msgs::action::GenerateResponse::Result ros_result;
+
+  ros_result.response.text = result.content;
+  ros_result.response.tokens = result.tokens;
+
+  if (llama) {
+    for (const auto &probs_msg : result.probs_output) {
+      llama_msgs::msg::TokenProbArray probs_msg_aux;
+      for (const auto &prob : probs_msg.data) {
+        llama_msgs::msg::TokenProb aux;
+        aux.token = prob.token;
+        aux.probability = prob.probability;
+        aux.token_text =
+            llama->detokenize(std::vector<llama_token>{prob.token});
+        probs_msg_aux.data.push_back(aux);
+      }
+      ros_result.response.probs.push_back(probs_msg_aux);
+    }
+  }
+
+  return ros_result;
+}
+
+llama_msgs::action::GenerateResponse::Feedback
+llama_utils::create_completion_feedback(
+    const llama_ros::CompletionOutput &completion, llama_ros::Llama *llama) {
+  llama_msgs::action::GenerateResponse::Feedback feedback;
+
+  if (llama) {
+    feedback.partial_response.text = llama->detokenize({completion.token});
+  }
+  feedback.partial_response.token = completion.token;
+  feedback.partial_response.probs.chosen_token = completion.token;
+
+  if (llama) {
+    for (auto prob : completion.probs) {
+      llama_msgs::msg::TokenProb aux;
+      aux.token = prob.token;
+      aux.probability = prob.probability;
+      aux.token_text = llama->detokenize({prob.token});
+      feedback.partial_response.probs.data.push_back(aux);
+    }
+  }
+
+  return feedback;
+}
+
+int32_t llama_utils::uuid_to_int32(const std::array<uint8_t, 16> &uuid) {
+  int32_t value;
+  std::memcpy(&value, uuid.data(), sizeof(int32_t));
+  return value;
+}
+
+uint64_t llama_utils::generate_random_uint64() {
+  static std::random_device rd;
+  static std::mt19937_64 eng(rd());
+  static std::uniform_int_distribution<uint64_t> distr;
+  static std::mutex rng_mutex;
+
+  std::lock_guard<std::mutex> lock(rng_mutex);
+  return distr(eng);
 }

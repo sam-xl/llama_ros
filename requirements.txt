@@ -1,3 +1,4 @@
+numpy<2
 langchain==0.3.27
 langchain-chroma==0.2.2
 langchain-community==0.3.27

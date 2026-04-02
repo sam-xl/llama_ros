@@ -11,7 +11,7 @@
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -45,7 +45,7 @@ struct LlamaParams {
   /**
    * @brief Common parameters for configuring the Llama system.
    */
-  struct common_params params;
+  common_params params;
 };
 
 /**
@@ -63,7 +63,7 @@ void declare_llama_params(
  * will be retrieved.
  * @return A struct containing the Llama parameters.
  */
-struct LlamaParams
+LlamaParams
 get_llama_params(const rclcpp_lifecycle::LifecycleNode::SharedPtr &node);
 
 /**
@@ -90,9 +90,26 @@ common_grammar_trigger_type parse_grammar_trigger_type(int type);
  * @param n_vocab The size of the vocabulary.
  * @return A struct containing the parsed sampling parameters.
  */
-struct common_params_sampling
+common_params_sampling
 parse_sampling_params(const llama_msgs::msg::SamplingConfig &sampling_config,
                       int n_vocab);
+
+/**
+ * @brief Applies EOG (End of Generation) logit biases to sampling
+ * configuration.
+ *
+ * This function handles the configuration of logit biases for EOG tokens based
+ * on the ignore_eos setting. It collects all EOG tokens from the vocabulary and
+ * adds them to the logit_bias_eog field, then conditionally applies them to
+ * the active logit_bias field.
+ *
+ * @param sampling_config The sampling configuration to modify (passed by
+ * reference).
+ * @param vocab The vocabulary to check for EOG tokens.
+ * @param ctx The llama context for token conversion.
+ */
+void apply_eog_logit_biases(llama_msgs::msg::SamplingConfig &sampling_config,
+                            const llama_vocab *vocab, const llama_context *ctx);
 
 } // namespace llama_utils
 

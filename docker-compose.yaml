@@ -1,0 +1,42 @@
+services:
+  llama_ros: 
+    build: . # location of Dockerfile
+    platform: linux/arm64
+    # Will try to find image locally before building. To force build use --build flag. 
+    image: llama_ros:latest 
+    container_name: llama_ros
+    network_mode: host
+    ipc: host
+    volumes:
+      - $HOME/.Xauthority:/home/ros/.Xauthority # for displaying GUI elements
+      # For workspace mount(Doesn't have to re-build from scratch every run)
+      - type: bind 
+        source: ${LLAMA_WS_SOURCE}
+        target: /home/ros/ros2_ws
+      # For Model Mount(Doesn't have to re-pull model every run)
+      - type: bind
+        source: $HOME/.cache/huggingface
+        target: /home/ros/.cache/huggingface
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - ROS_LOCALHOST_ONLY=${ROS_LOCALHOST_ONLY}
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - DISPLAY=${DISPLAY}
+    #Expose NVIDIA GPU to container applications using custom nvidia container runtime
+    runtime: nvidia 
+    # deploying nvidia gpus
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, compute, utility]
+    privileged: true
+    working_dir: /home/ros/ros2_ws
+    # Only build the llama packages just in case workspace is shared, don't want to build all packages in workspace. 
+    command: > 
+      bash -c "source /opt/ros/jazzy/setup.bash 
+      && colcon build --packages-select llama_bringup llama_bt llama_cli llama_cpp_vendor llama_demos llama_hfhub_vendor llama_msgs llama_ros --cmake-args -DGGML_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
+      && source install/setup.bash
+      && ros2 llama launch /home/ros/ros2_ws/src/llama_ros/llama_bringup/models/${LLAMA_MODEL_FILE}"

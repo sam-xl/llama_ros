@@ -1,65 +1,67 @@
-ARG ROS_DISTRO=rolling
-FROM ros:${ROS_DISTRO} AS deps
+ARG USER=ros
+ARG USER_UID=1000
+ARG USER_GID=1000
+ARG ROS_DISTRO=jazzy 
+
+FROM --platform=linux/arm64 docker.io/samxl/jetson_ros:r36.4-${ROS_DISTRO} AS deps
+
+# Redefine them to be used in this scope
+ARG USER
+ARG USER_UID
+ARG USER_GID
+ARG ROS_DISTRO
+
+# Delete user if it exists in container (e.g Ubuntu Noble: ubuntu)
+RUN if id -u $USER_UID ; then userdel `id -un $USER_UID` ; fi
+
+# Create the user
+RUN groupadd --gid $USER_GID $USER \
+    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USER \
+    && apt-get update && apt-get install -y \
+        bash-completion \
+        openssh-client \
+        sudo \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm /etc/apt/apt.conf.d/docker-clean \
+    && echo $USER ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USER \
+    && chmod 0440 /etc/sudoers.d/$USER \
+    && echo "source /opt/ros/jazzy/setup.bash" >> /home/${USER}/.bashrc
 
 # Create ros2_ws and copy files
-WORKDIR /root/ros2_ws
+WORKDIR /home/$USER/ros2_ws
 SHELL ["/bin/bash", "-c"]
-COPY . /root/ros2_ws/src
+COPY . /home/$USER/ros2_ws/src
+RUN chown -R ros:ros . 
 
-# Install dependencies
-RUN apt-get update \
-    && apt-get -y --quiet --no-install-recommends install \
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     gcc \
     git \
     wget \
     python3 \
-    python3-pip
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Clone behavior_tree if ROS_DISTRO is rolling
-RUN if [ "$ROS_DISTRO" = "rolling" ]; then \
-    git clone https://github.com/BehaviorTree/BehaviorTree.CPP src/BehaviorTree.CPP; \
-    fi
+USER $USER
 
 # Install rosdep
-RUN apt update && rosdep install --from-paths src --ignore-src -r -y
+RUN sudo apt update && sudo rosdep init && rosdep update && rosdep install --from-paths src --ignore-src -r -y
 
-# Check if ubuntu version is 24.04 or later
-RUN if [ "$(lsb_release -rs)" = "24.04" ] || [ "$(lsb_release -rs)" = "24.10" ]; then \
-    pip3 install -r src/requirements.txt --break-system-packages --ignore-installed; \
-    else \
-    pip3 install -r src/requirements.txt; \
-    fi
+# Install all Python Reqs
+RUN sudo /opt/venv/bin/pip install -r src/requirements.txt --break-system-packages --ignore-installed --index-url https://pypi.org/simple/ 
 
-# Install CUDA nvcc
-ARG USE_CUDA
-ARG CUDA_VERSION=12-6
-
-RUN if [ "$USE_CUDA" = "1" ]; then \
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb && \
-    dpkg -i cuda-keyring_1.1-1_all.deb && \
-    rm cuda-keyring_1.1-1_all.deb; \
-    apt-get update && apt-get install -y cuda-toolkit-$CUDA_VERSION; \
-    echo "export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}" >> ~/.bashrc; \
-    echo "export LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" >> ~/.bashrc; \
-    fi
-
-# Colcon the ws
+# Build the workspace with colcon
 FROM deps AS builder
+USER $USER
+WORKDIR /home/$USER/ros2_ws
+
 ARG CMAKE_BUILD_TYPE=Release
+ARG ROS_DISTRO
 
-ENV PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64
-
-RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
-    if [ "$USE_CUDA" = "1" ]; then \
-    source ~/.bashrc && \
-    colcon build --cmake-args -DGGML_CUDA=ON; \
-    else \
-    colcon build; \
-    fi
+#MOVING BUILD STAGE INTO CONTAINER
 
 # Source the ROS 2 setup file
-RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
+RUN echo "source /home/$USER/ros2_ws/install/setup.bash" >> ~/.bashrc
 
-# Run a default command, e.g., starting a bash shell
 CMD ["bash"]

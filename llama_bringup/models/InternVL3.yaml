@@ -1,15 +1,29 @@
-use_llava: True
+/**:
+  ros__parameters:
+    # Model parameters
+    model:
+      repo: mradermacher/InternVL3-8B-GGUF
+      filename: InternVL3-8B.Q4_K_M.gguf
 
-n_ctx: 8192
-n_batch: 256
-n_gpu_layers: 33
-n_threads: -1
-n_predict: 8192
+    # Multimodal projector parameters
+    mmproj:
+      repo: mradermacher/InternVL3-8B-GGUF
+      filename: InternVL3-8B.mmproj-Q8_0.gguf
 
-model_repo: "mradermacher/InternVL3-8B-GGUF"
-model_filename: "InternVL3-8B.Q4_K_M.gguf"
+    # Context / inference parameters
+    context:
+      n_ctx: 8192
+      n_batch: 256
+      n_predict: 8192
 
-mmproj_repo: "mradermacher/InternVL3-8B-GGUF"
-mmproj_filename: "InternVL3-8B.mmproj-Q8_0.gguf"
+    # GPU / backend parameters
+    gpu:
+      n_gpu_layers: 33
 
-system_prompt_type: "ChatML"
+    # CPU parameters
+    cpu:
+      n_threads: -1
+
+    # Prompt & chat parameters
+    prompt:
+      system_prompt_type: ChatML

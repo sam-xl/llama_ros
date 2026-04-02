@@ -29,7 +29,7 @@ from abc import ABC
 import urllib.request
 from cv_bridge import CvBridge
 from pydantic import model_validator
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict
 
 from langchain_core.language_models import BaseLanguageModel
 
@@ -39,6 +39,7 @@ from llama_msgs.srv import GetMetadata
 from llama_msgs.msg import LogitBias
 from llama_msgs.msg import Metadata
 from llama_msgs.msg import SamplingConfig
+from llama_msgs.msg import GrammarTrigger
 from sensor_msgs.msg import Image
 
 
@@ -50,11 +51,14 @@ class LlamaROSCommon(BaseLanguageModel, ABC):
     stream_reasoning: bool = False
 
     # sampling params
+    seed: int = 4294967295  # LLAMA_DEFAULT_SEED (random)
     n_prev: int = 64
-    n_probs: int = 1
+    n_probs: int = 0
     min_keep: int = 0
 
     ignore_eos: bool = False
+    no_perf: bool = False
+    timing_per_token: bool = False
     logit_bias: Dict[int, float] = {}
 
     temp: float = 0.80
@@ -80,6 +84,9 @@ class LlamaROSCommon(BaseLanguageModel, ABC):
     dry_penalty_last_n: int = -1
     dry_sequence_breakers: List[str] = ["\\n", ":", '\\"', "*"]
 
+    adaptive_target: float = -1.0
+    adaptive_decay: float = 0.90
+
     mirostat: int = 0
     mirostat_eta: float = 0.10
     mirostat_tau: float = 5.0
@@ -89,8 +96,9 @@ class LlamaROSCommon(BaseLanguageModel, ABC):
     grammar: str = ""
     grammar_schema: str = ""
     grammar_lazy: bool = False
-    grammar_triggers: List[List[Union[int, str]]] = []
+    grammar_triggers: List[str] = []
     preserved_tokens: List[int] = []
+    backend_sampling: bool = False
 
     enable_thinking: bool = False
 
@@ -114,7 +122,12 @@ class LlamaROSCommon(BaseLanguageModel, ABC):
 
     def _get_image(self, image_url: str, image: np.ndarray) -> Image:
         if image_url and image is None:
-            req = urllib.request.Request(image_url, headers={"User-Agent": "Mozilla/5.0"})
+            req = urllib.request.Request(
+                image_url,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+                },
+            )
             response = urllib.request.urlopen(req)
             arr = np.asarray(bytearray(response.read()), dtype=np.uint8)
             image = cv2.imdecode(arr, -1)
@@ -163,11 +176,14 @@ class LlamaROSCommon(BaseLanguageModel, ABC):
 
     def _set_sampling_config(self):
         sampling_config = SamplingConfig()
+        sampling_config.seed = self.seed
         sampling_config.n_prev = self.n_prev
         sampling_config.n_probs = self.n_probs
         sampling_config.min_keep = self.min_keep
 
         sampling_config.ignore_eos = self.ignore_eos
+        sampling_config.no_perf = self.no_perf
+        sampling_config.timing_per_token = self.timing_per_token
         for key in self.logit_bias:
             lb = LogitBias()
             lb.token = key
@@ -181,6 +197,7 @@ class LlamaROSCommon(BaseLanguageModel, ABC):
         sampling_config.top_k = self.top_k
         sampling_config.top_p = self.top_p
         sampling_config.min_p = self.min_p
+        sampling_config.top_n_sigma = self.top_n_sigma
         sampling_config.xtc_probability = self.xtc_probability
         sampling_config.xtc_threshold = self.xtc_threshold
         sampling_config.typical_p = self.typical_p
@@ -196,6 +213,9 @@ class LlamaROSCommon(BaseLanguageModel, ABC):
         sampling_config.dry_penalty_last_n = self.dry_penalty_last_n
         sampling_config.dry_sequence_breakers = self.dry_sequence_breakers
 
+        sampling_config.adaptive_target = self.adaptive_target
+        sampling_config.adaptive_decay = self.adaptive_decay
+
         sampling_config.mirostat = self.mirostat
         sampling_config.mirostat_eta = self.mirostat_eta
         sampling_config.mirostat_tau = self.mirostat_tau
@@ -205,7 +225,16 @@ class LlamaROSCommon(BaseLanguageModel, ABC):
         sampling_config.grammar = self.grammar
         sampling_config.grammar_schema = self.grammar_schema
         sampling_config.grammar_lazy = self.grammar_lazy
-        sampling_config.grammar_triggers = self.grammar_triggers
+
+        grammar_trigger_msgs = []
+        for trigger in self.grammar_triggers:
+            grammar_trigger_msg = GrammarTrigger()
+            grammar_trigger_msg.type = GrammarTrigger.GRAMMAR_TRIGGER_TYPE_WORD
+            grammar_trigger_msg.value = trigger
+            grammar_trigger_msgs.append(grammar_trigger_msg)
+
+        sampling_config.grammar_triggers = grammar_trigger_msgs
         sampling_config.preserved_tokens = self.preserved_tokens
+        sampling_config.backend_sampling = self.backend_sampling
 
         return sampling_config

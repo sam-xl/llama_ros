@@ -27,7 +27,7 @@
 import time
 import rclpy
 from random import randint
-from langchain.tools import tool
+from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage, AIMessage
 from llama_ros.langchain import ChatLlamaROS
 
@@ -79,7 +79,7 @@ def main():
         tool_msg.additional_kwargs = {"args": tool["args"]}
         messages.append(tool_msg)
 
-    res: AIMessage = llm_tools.invoke(messages)
+    res: AIMessage = chat.invoke(messages)
     eval_time = time.time()
     print(f"\nResponse: {res.content}")
 
